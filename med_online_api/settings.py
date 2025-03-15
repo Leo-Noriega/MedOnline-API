@@ -1,3 +1,7 @@
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
 from pathlib import Path
 from pathlib import Path
 import json
@@ -31,6 +35,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "users",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -87,6 +92,7 @@ DATABASES = {
     }
 }
 
+AUTH_USER_MODEL = "users.CustomUser"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -122,7 +128,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/assets/"
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "assets"),)
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
