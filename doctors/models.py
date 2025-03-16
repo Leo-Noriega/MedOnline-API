@@ -7,7 +7,7 @@ class Speciality(models.Model):
         return self.name
 
 class Address(models.Model):
-    name_clinic = models.CharField(max_length=255)
+    clinic_name = models.CharField(max_length=255)
     street = models.CharField(max_length=255)  
     city = models.CharField(max_length=100)
     state = models.CharField(max_length=100)
