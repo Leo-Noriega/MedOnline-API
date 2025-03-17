@@ -33,9 +33,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=45, blank=True)
     photo = models.ImageField(upload_to="user", default="default.png")
     role = models.ForeignKey("Role", on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.ForeignKey(
-        "UserStatus", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    status = models.BooleanField(default=True)
 
     join_date = models.DateTimeField(default=now)
     is_active = models.BooleanField(default=True)
@@ -66,10 +64,3 @@ class Role(models.Model):
         db_table = "role"
         verbose_name = "Role"
         verbose_name_plural = "Roles"
-
-
-class UserStatus(models.Model):
-    status = models.BooleanField(default=True)
-
-    class Meta:
-        db_table = "user_status"
