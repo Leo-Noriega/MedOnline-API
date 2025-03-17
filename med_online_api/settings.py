@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "reviews",
     "schedule",
     "doctors",
+    "rest_framework",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
