@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from doctors.models import Doctor,Address
 
 class Status(models.IntegerChoices):
     PENDING = 1, 'Pending'
@@ -14,9 +15,9 @@ class Gender(models.IntegerChoices):
 
 
 class Appointment(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient")
-    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='appoitnments')
-    address = models.ForeignKey('Address', on_delete=models.CASCADE, related_name='addresses')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_user")
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appoitnments')
+    address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='addresses')
     patient_name = models.CharField(max_length=60, blank=False, null=False)
     patient_surnames = models.CharField(max_length=80, blank=False, null=False)
     birthdate = models.DateField(null=False, blank=False)
