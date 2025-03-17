@@ -1,4 +1,6 @@
 from django.db import models
+from doctors.models import Doctor
+
 
 class Weekday(models.IntegerChoices):
     MONDAY = 1, 'Monday'
@@ -10,7 +12,7 @@ class Weekday(models.IntegerChoices):
     SUNDAY = 7, 'Sunday'
 
 class Availability(models.Model):
-    doctor = models.ForeignKey('Doctor', on_delete=models.CASCADE, related_name='availabilities')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='availabilities')
     weekday = models.IntegerField(choices=Weekday.choices, blank=False, null=False)
     start_time = models.TimeField(blank=False, null=False)
     end_time = models.TimeField(blank=False, null=False)
