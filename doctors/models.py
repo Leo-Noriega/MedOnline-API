@@ -27,9 +27,9 @@ class Doctor(models.Model):
     years_experience = models.PositiveSmallIntegerField()
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2) 
     status = models.BooleanField(default=True)  
+    
     def __str__(self):
-        return f"Dr. {self.user.name} {self.user.usernames}"
-
+        return f"Dr. {self.user.name}"
 
 class DoctorSpecialty(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)

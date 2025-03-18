@@ -15,7 +15,7 @@ class Gender(models.IntegerChoices):
 
 
 class Appointment(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_user")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_user")
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appoitnments')
     address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='addresses')
     patient_name = models.CharField(max_length=60, blank=False, null=False)
