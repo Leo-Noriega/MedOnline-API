@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+:root {
+    --azul-principal: #2E5077;
+    --azul-secundario: #4DA1A9;
+    --verde: #79D7BE;
+    --fondo: #FFFFFF;
+    --fondo-secciones: #F9F9F9;
+    --texto: #7F807F;
+    --textos-principales: #565C5F;
+
+  
+}
+
+body {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.logo{
+    height: 40px;
+}
+
+.text-principal {
+    color: var(--textos-principales);
+}
+.text{
+    color: var(--texto);
+}
+.text-title{
+    color: var(--azul-principal);
+}
+.text-second{
+    color: var(--azul-secundario);
+}
+.primary-color{
+    background-color: var(--azul-principal);
+}
+.secondary-color{
+    background-color: var(--azul-secundario);
+}
+.bg-primary-color{
+    background-color: var(--fondo);
+}
+.bg-section{
+    background-color: var(--fondo-secciones);
+}
+
+.borde-hr{
+    border: none; 
+    border-top: 2px solid var(--azul-secundario); 
+    margin: 20px 0; 
+    opacity: 1;
+}
+
+/*menu del landing*/
+@media (max-width: 991.98px) {
+    .navbar-toggler {
+        display: block;
+    }
+    nav.d-none {
+        display: none;
+    }
+}
+@media (min-width: 992px) {
+    .navbar-toggler {
+        display: none;
+    }
+    nav.d-none {
+        display: block;
+    }
+}
+

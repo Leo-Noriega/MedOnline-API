@@ -77,7 +77,7 @@ ROOT_URLCONF = "med_online_api.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        'DIRS': [os.path.join(BASE_DIR, 'med_online_api/templates')],   
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
