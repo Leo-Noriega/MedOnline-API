@@ -110,7 +110,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-conf.json
+med_online_api/conf.json
 
 # mkdocs documentation
 /site
