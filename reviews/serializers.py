@@ -2,45 +2,55 @@ from rest_framework import serializers
 from django.utils.timezone import now
 from .models import Review
 from appointments.models import Appointment
+from django.utils import timezone
+
 
 class ReviewSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Review
-        fields = ["id", "user", "doctor", "rating", "comment", "review_date"]
+        fields = ["id", "user", "doctor", "rating", "comment", "review_date", "appointment"]
         read_only_fields = ["id", "review_date", "user"]
 
     def validate(self, data):
         user = self.context["request"].user
         doctor = data.get("doctor")
+        appointment = data.get("appointment")
 
-        # Obtener todas las citas pasadas del usuario con ese doctor
-        past_appointments = Appointment.objects.filter(
-            user=user, doctor=doctor, appointment_date__lt=now()
-        ).order_by("-appointment_date")
+        # Verificar logs para depuración
+        print(f"Datos recibidos en el serializer: {data}")
+        print(f"Usuario autenticado: {user.id}")
+        print(f"Doctor ID: {doctor.id if doctor else 'None'}")
+        print(f"Appointment ID: {appointment.id if appointment else 'None'}")
 
-        print("=== CITAS PASADAS ORDENADAS ===")
-        for appointment in past_appointments:
-            print(f"ID: {appointment.id}, Fecha: {appointment.appointment_date}")
+        # Validar que se proporcionó una cita
+        if not appointment:
+            raise serializers.ValidationError("Debes proporcionar una cita válida.")
 
-        if not past_appointments.exists():
-            raise serializers.ValidationError("Solo puedes hacer una reseña después de haber tenido una cita con el doctor.")
+        # Validar que la cita pertenece al usuario
+        if appointment.user.id != user.id:
+            raise serializers.ValidationError("Esta cita no te pertenece.")
 
-        # Obtener la última cita pasada
-        last_appointment = past_appointments.first()
+        # Validar que la cita corresponde al doctor
+        if appointment.doctor.id != doctor.id:
+            raise serializers.ValidationError("Esta cita no corresponde a este doctor.")
 
-        print(f"Última cita encontrada: {last_appointment.appointment_date}")
+        # Convertir las fechas a la zona horaria local antes de comparar
+        appointment_date_local = timezone.localtime(appointment.appointment_date)
+        now_local = timezone.localtime(timezone.now())
 
-        # Contar cuántas reseñas ha dejado el usuario para este doctor
-        total_reviews = Review.objects.filter(user=user, doctor=doctor).count()
+        print(f"Fecha actual en zona horaria local: {now_local}")
+        print(f"Fecha de la cita en zona horaria local: {appointment_date_local}")
 
-        # Contar cuántas citas pasadas ha tenido el usuario con este doctor
-        total_past_appointments = past_appointments.count()
+        # Validar que la cita ya pasó
+        if appointment_date_local >= now_local:
+            raise serializers.ValidationError("Solo puedes hacer una reseña después de que la cita haya pasado.")
 
-        print(f"Total de citas pasadas: {total_past_appointments}")
-        print(f"Total de reseñas hechas: {total_reviews}")
-
-        # El usuario solo puede hacer una reseña por cada cita pasada
-        if total_reviews >= total_past_appointments:
-            raise serializers.ValidationError("Ya has dejado una reseña por todas tus citas con este doctor.")
+        # Validar que no existe ya una reseña para esta cita
+        if Review.objects.filter(appointment=appointment).exists():
+            existing_review = Review.objects.get(appointment=appointment)
+            print(f"Ya existe una reseña para esta cita: Usuario {existing_review.user.id}")
+            raise serializers.ValidationError("Ya has dejado una reseña para esta cita.")
 
         return data
+
