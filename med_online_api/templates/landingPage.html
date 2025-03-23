@@ -12,42 +12,7 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100">
-    <header class="bg-section text-white pt-1 px-0" style="height: 56px;">
-        <nav class="navbar bg-body-tertiary fixed-top">
-            <div class="container-fluid">
-                <a href="{% url 'landing' %}" class="navbar-brand"><img src="{% static 'img/logo.png' %}" class="logo"/></a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas"
-                    data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-    
-                <nav class="d-none d-lg-block">
-                    <ul class="nav">
-                        <li class="nav-item"><a class="nav-link text-principal" href="{% url 'landing' %}">Inicio</a></li>
-                        <li class="nav-item"><a class="nav-link text-principal" href="{% url 'quienes-somos' %}">¿Quíenes somos?</a></li>
-                        <li class="nav-item"><a class="nav-link text-principal" href="#">Registrarse</a></li>
-                        <li class="nav-item"><a class="nav-link text-principal" href="#">Acceder</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </nav>
-        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-            <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">MedOnline</h5>
-                <button type="button" class="btn-close btn-close" data-bs-dismiss="offcanvas"
-                    aria-label="Close"></button>
-            </div>
-            <div class="offcanvas-body">
-                <ul class="navbar-nav">
-                    <li class="nav-item"><a class="nav-link text" href="{% url 'landing' %}">Inicio</a></li>
-                    <li class="nav-item"><a class="nav-link text" href="{% url 'quienes-somos' %}">¿Quíenes somos?</a></li>
-                    <li class="nav-item"><a class="nav-link text" href="#">Registrarse</a></li>
-                    <li class="nav-item"><a class="nav-link text" href="#">Acceder</a></li>
-                </ul>
-            </div>
-        </div>
-    </header>
-    
+    {% include '_navBar.html' %}
     <main class="flex-grow-1">
         <section class="text-center bg-white py-0 d-flex flex-column flex-md-row align-items-center">
             <div class="w-100 w-md-50 p-3 text-title">
