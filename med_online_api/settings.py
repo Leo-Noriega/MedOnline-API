@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "reviews",
     "schedule",
     "doctors",
+    "mails",
     "rest_framework",
     "rest_framework_simplejwt",
     "django.contrib.admin",
@@ -157,3 +158,9 @@ LOGIN_REDIRECT_URL = "/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+EMAIL_HOST = 'smtp.googlemail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'medonlineapi@gmail.com'
+EMAIL_HOST_PASSWORD = conf["email_password"]
+EMAIL_USE_TLS = True
