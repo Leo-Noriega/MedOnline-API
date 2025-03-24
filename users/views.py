@@ -1,9 +1,7 @@
 import json
 
-from django.contrib.auth import authenticate
-from django.contrib.auth.views import LoginView
+from django.contrib.auth import authenticate, login
 from django.http.response import JsonResponse
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormView
@@ -46,6 +44,7 @@ class CustomLoginView(FormView):
 
         user = authenticate(request, username=email, password=password)
         if user is not None:
+            login(request, user)
             refresh = RefreshToken.for_user(user)
             return JsonResponse({
                 'access_token': str(refresh.access_token),
