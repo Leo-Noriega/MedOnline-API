@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        @media (min-width: 992px) {
+            main {
+                transition: margin-left 0.5s ease;
+            }
+
+            main.shifted {
+                margin-left: 200px;
+            }
+
+            .offcanvas {
+                padding: 20px;
+                top: 56px;
+            }
+        }
+        .link-hover.active {
+        border-left-color: rgba(30, 128, 145, 0.7);
+        background-color: rgba(29, 106, 111, 0.1);
+        }
+
+        .link-hover {
+            border-left: 4px solid transparent;
+            background-color: transparent;
+            transition: background-color 0.3s ease, border-left-color 0.3s ease;
+        }
+
+        .link-hover:hover {
+            border-left-color: rgba(30, 128, 145, 0.7);
+            background-color: rgba(29, 106, 111, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    {% include 'header.html' %}
+    <div class="offcanvas offcanvas-start offcanvas-lg bg-light" data-bs-scroll="true" data-bs-backdrop="false"
+        tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel"
+        style="width: 200px; top: 56px;">
+        <div class="offcanvas-header justify-content-end">
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        {%include 'sidebar.html'%}
+    </div>
+
+    <main class="p-3">
+        <div class="p-2">
+            <div class="d-flex align-items-center">
+                <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
+                    aria-controls="offcanvasScrolling"><i class="bi bi-list"></i></button>
+                <h4 class="text-title">Hola, Dr. Julia Alarez</h4>
+            </div>
+            <p class="text">Estas son algunas recomendaciones para lograr que más pacientes encuentren tu perfil.</p>
+        </div>
+
+        <div class="p-3 bg-section rounded m-auto">
+            <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center justify-content-center text-second rounded-circle"
+                    style="width: 30px; height: 30px; background-color: #4da1a94e;">
+                    <i class="bi bi-emoji-smile"></i>
+                </div>
+                <div class="ms-2">
+                    <h4 class="text-title">Manten un perfil agradable</h4>
+                </div>
+            </div>
+            <div class="d-flex justify-content-center">
+                <div class="text-secondary mt-2">
+                    <p>
+                        Utiliza una foto en la que se muestre tu rostro claramente. Es importante que transmitas
+                        profesionalismo y amabilidad en tu expresión.
+                    </p>
+                    <p>
+                        Solicita a tus pacientes que dejen reseñas y testimonios sobre su experiencia contigo, los
+                        comentarios positivos aumenta la confianza de nuevos pacientes.
+                    </p>
+                    <p>
+                        Manten tu perfil actualizado con las últimas cersificaciones esto muestra tu desarrollo
+                        profesional.
+                    </p>
+                </div>
+                <div class="justify-content-end align-items-end w-25 d-none d-md-block">
+                    <img class="w-100" src="{% static 'img/config_userimg.png' %}" />
+                </div>
+            </div>
+
+        </div>
+
+        <div class="d-flex my-3 p-3 row justify-content-between">
+            <div class="d-flex flex-column bg-section rounded text p-3 col-11 col-md-5 m-2">
+                <div class="d-flex align-items-center justify-content-center text-warning rounded-circle"
+                    style="width: 35px; height: 35px; background-color: #7f807f1e;">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <h6 class="mt-3 text-title">¿Quieres que más pacientes encuentren tu perfil?</h6>
+                <a class="text-decoration-none text mt-3 pe-auto">Agrega todos los servicios que brindas en tus
+                    consultorios</a>
+                <hr class="borde-hr">
+                <a class="text-decoration-none text mt-3 pe-auto">Manten la información de tu consultorio
+                    actualizada</a>
+                <hr class="borde-hr">
+            </div>
+            <div class="d-flex flex-column bg-section rounded p-3 col-11 col-md-5 m-2">
+                <div class="d-flex align-items-center justify-content-center text-warning rounded-circle"
+                    style="width: 35px; height: 35px; background-color: #7f807f1e;">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <h6 class="mt-3 text-title">Construye confianza con tus pacientes</h6>
+                <a class="text-decoration-none text link mt-3 pe-auto">Manten tu agenda en orden y actualizada</a>
+                <hr class="borde-hr">
+                <a class="text-decoration-none text link mt-3 pe-auto">Haz que tu perfil sea agradable para los pacientes</a>
+                <hr class="borde-hr">
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/sidebar.js' %}"></script>
+    
+</body>
+
+</html>
