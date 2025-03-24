@@ -161,6 +161,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 EMAIL_HOST = 'smtp.googlemail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'medonlineapi@gmail.com'
+EMAIL_HOST_USER = conf["email_user"]
 EMAIL_HOST_PASSWORD = conf["email_password"]
 EMAIL_USE_TLS = True
