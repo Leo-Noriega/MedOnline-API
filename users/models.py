@@ -1,12 +1,28 @@
+from autoslug import AutoSlugField
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
-    PermissionsMixin,
+    PermissionsMixin
 )
-
 from django.db import models
+from django.db.models.signals import post_migrate
+from django.dispatch.dispatcher import receiver
 from django.utils.timezone import now
-from autoslug import AutoSlugField
+
+
+# == USERS predeterminados entonrno de desarrollo ==
+@receiver(post_migrate)
+def create_defaullt_user(sender, **kwargs):
+    if not CustomUser.objects.filter(email="admin@mail.com").exists():
+        CustomUser.objects.create_superuser(
+            email="admin@mail.com",
+            password="admin",
+            name="Admin",
+            surnames="Admin",
+            username="admin",
+        )
+        # TODO: Borrar en producción
+        print('=== USUARIO ADMIN PARA DESARROLLO CREADO ===')
 
 
 class CustomUserManager(BaseUserManager):
@@ -26,7 +42,8 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    token= models.CharField(max_length=255, blank=True, null=True)
+    access_token = models.CharField(max_length=255, blank=True, null=True)
+    refresh_token = models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=60, blank=True)
     surnames = models.CharField(max_length=80, blank=True)
     email = models.EmailField(unique=True)
