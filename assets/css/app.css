@@ -14,6 +14,7 @@
 
 body {
     font-family: 'DM Sans', sans-serif;
+    background-color: var(--fondo);
 }
 
 .logo{
@@ -48,7 +49,7 @@ body {
 .borde-hr{
     border: none; 
     border-top: 2px solid var(--azul-secundario); 
-    margin: 20px 0; 
+    margin: 0px 0; 
     opacity: 1;
 }
 
@@ -69,4 +70,6 @@ body {
         display: block;
     }
 }
-
+a{
+    cursor: pointer;
+}

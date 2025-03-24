@@ -10,4 +10,5 @@ router.register(r'addresses', AddressViewSet, basename='address')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('inicio/',home,name='inicio'),
 ]
