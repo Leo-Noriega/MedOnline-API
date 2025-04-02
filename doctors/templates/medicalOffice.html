@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+
+<body>
+    <div id="modal" class="modal-overlay" style="display: none;">
+
+        <div class="col-12 p-4 rounded">
+            <div class="py-4">
+                <div class="d-flex align-items-center">
+                    <h4 class="text-title">Mi consultorio</h4>
+                </div>
+                <hr class="borde-hr" />
+            </div>
+            <p id="modal-title" class="text-principal fw-semibold">Formulario</p>
+            <form id="address-form">
+                <div class="row">
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label text-title fw-semibold">Nombre de la clínica:</label>
+                        <input type="text" id="clinic-name" class="form-control"
+                            placeholder="Ejemplo: Clínica Santa María" required>
+                        <div class="invalid-feedback">
+                            El nombre de la clínica es obligatorio.
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 mb-3">
+                        <label class="form-label text-title fw-semibold">Calle:</label>
+                        <input type="text" id="street" class="form-control" placeholder="Ejemplo: Calle Principal 123"
+                            required minlength="10" maxlength="200">
+                        <div class="invalid-feedback">
+                            La calle debe tener entre 10 y 200 caracteres.
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-md-4 mb-3">
+                        <label class="form-label text-title fw-semibold">Ciudad:</label>
+                        <input type="text" id="city" class="form-control" placeholder="Ejemplo: Ciudad de México"
+                            pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+" required>
+                        <div class="invalid-feedback">
+                            La ciudad es requerida y solo puede contener letras.
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 mb-3">
+                        <label class="form-label text-title fw-semibold">Estado:</label>
+                        <input type="text" id="state" class="form-control" placeholder="Ejemplo: CDMX"
+                            pattern="[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]+" required>
+                        <div class="invalid-feedback">
+                            El estado es requerido y solo puede contener letras.
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 mb-3">
+                        <label class="form-label text-title fw-semibold">Código postal:</label>
+                        <input type="text" id="postal-code" class="form-control" placeholder="Ejemplo: 01234"
+                            pattern="\d{5}" required>
+                        <div class="invalid-feedback">
+                            El código postal es requerido y debe tener exactamente 5 dígitos.
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="button-edit mx-2" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="button-principal" id="modal-save-button">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <style>
+        .modal-overlay {
+            position: fixed;
+            top: 50px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--fondo);
+            display: flex;
+            justify-content: center;
+            align-items: start;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            width: 80%;
+            max-width: 600px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+        }
+    </style>
+    {% include 'header.html' %}
+    <div class="offcanvas offcanvas-start offcanvas-lg bg-light" data-bs-scroll="true" data-bs-backdrop="false"
+        tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel"
+        style="width: 200px; top: 56px;">
+        <div class="offcanvas-header justify-content-end">
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        {% include 'sidebar.html' %}
+    </div>
+
+    <main class="p-3">
+        <div class="p-2">
+            <div class="d-flex align-items-center">
+                <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
+                    aria-controls="offcanvasScrolling"><i class="bi bi-list"></i></button>
+                <h4 class="text-title">Mis consultorios</h4>
+            </div>
+            <hr class="borde-hr" />
+        </div>
+        <div class="container rounded bg-section justify-content-center p-3" id="container-consultorios">
+            <div class="d-flex justify-content-end" id="head-consultorios">
+                <button class="button-edit" onclick="openModal(null)" id="agregar">Agregar consultorio</button>
+            </div>
+            <div class="" id="consultorios" data-id="{{user_id}}">
+
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/sidebar.js' %}"></script>
+    <script src="{% static 'js/toast_alerts.js' %}"></script>
+    <script>
+
+        let doctorId = null;
+
+        function fetchDoctorData(callback) {
+            const userId = "{{ user_id }}";
+            const endpoint = `/especialista/details/${userId}`;
+
+            fetch(endpoint, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('No se pudo obtener la información del usuario');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    callback(data);
+                    doctorId = data.doctor.id;
+                })
+                .catch(error => {
+                    console.error(error);
+                    alert('Hubo un error al cargar la información del usuario');
+                });
+        }
+
+        function renderUserInfo(data) {
+            const consultorios = document.getElementById('consultorios');
+            consultorios.innerHTML = '';
+
+            data.addresses.forEach(address => {
+                const div = document.createElement('div');
+                div.classList.add('my-3', 'd-flex', 'bg-primary-color', 'py-2', 'px-2', 'rounded', 'justify-content-between', 'row');
+                div.innerHTML = `
+                <div class="p-3 text row">
+                    <div class="col-12 col-md-6">
+                        <div class="text-second fw-medium mb-3 d-inline-flex flex-column">
+                            <h6>${address.clinic_name}</h6>
+                            <hr class="borde-hr">
+                        </div>
+                        <div>${address.city}, ${address.street}</div>
+                        <div>${address.postal_code}, ${address.state}</div>
+                    </div>
+                    <div class="d-flex row col-12 col-md-6 justify-content-end m-auto align-items-center p-2">
+                        <button class="button-edit m-1 col-sm-12 col-md-7" onclick="openModal(${address.id})">Modificar dirección</button>
+                        <button class="button-principal bg-secondary m-1 col-sm-12 col-md-3"" onclick="deleteAddress(${address.id})">Eliminar</button>
+                    </div>
+                </div>`;
+
+
+                consultorios.appendChild(div);
+            });
+        }
+
+        function openModal(addressId = null) {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'flex';
+
+            const title = document.getElementById('modal-title');
+            const saveButton = document.getElementById('modal-save-button');
+            const form = document.getElementById('address-form');
+
+            if (addressId) {
+                title.innerText = 'Modificar dirección del consultorio';
+                form.dataset.addressId = addressId;
+
+                fetch(`/especialista/addresses/${addressId}/`, { method: 'GET' })
+                    .then(response => {
+                        if (!response.ok) throw new Error("No se pudo obtener la dirección");
+                        return response.json();
+                    })
+                    .then(address => {
+                        document.getElementById('clinic-name').value = address.clinic_name || '';
+                        document.getElementById('street').value = address.street || '';
+                        document.getElementById('city').value = address.city || '';
+                        document.getElementById('state').value = address.state || '';
+                        document.getElementById('postal-code').value = address.postal_code || '';
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar la dirección:', error);
+                        alert("Error al cargar la dirección.");
+                    });
+            } else {
+                title.innerText = '¿En dónde trabajas?';
+                form.dataset.addressId = '';
+
+                document.getElementById('clinic-name').value = '';
+                document.getElementById('street').value = '';
+                document.getElementById('city').value = '';
+                document.getElementById('state').value = '';
+                document.getElementById('postal-code').value = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchDoctorData(renderUserInfo);
+
+            const form = document.getElementById('address-form');
+            const inputs = form.querySelectorAll('input');
+
+            inputs.forEach(input => {
+                input.addEventListener('input', () => validateInput(input));
+                input.addEventListener('blur', () => validateInput(input));
+            });
+
+            form.addEventListener('submit', event => {
+                event.preventDefault();
+                let isValid = true;
+                inputs.forEach(input => {
+                    if (!validateInput(input)) {
+                        isValid = false;
+                    }
+                });
+
+                if (isValid) {
+                    const addressId = form.dataset.addressId || null;
+                    saveAddress(addressId);
+                }
+            });
+        });
+
+        function validateInput(input) {
+            const isValid = input.checkValidity();
+            if (isValid) {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            } else {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+            }
+            return isValid;
+        }
+
+        function saveAddress(addressId = null) {
+            const clinicName = document.getElementById('clinic-name').value.trim();
+            const street = document.getElementById('street').value.trim();
+            const city = document.getElementById('city').value.trim();
+            const state = document.getElementById('state').value.trim();
+            const postalCode = document.getElementById('postal-code').value.trim();
+
+            const data = {
+                clinic_name: clinicName,
+                street: street,
+                city: city,
+                state: state,
+                postal_code: postalCode,
+                doctor: doctorId,
+            };
+            if (!clinicName || !street || !city || !state || !postalCode) {
+                mostrarToastGlobal({
+                    type: 'danger',
+                    message: 'Todos los campos son obligatorios.'
+                });
+                return;
+            }
+
+            const method = addressId ? "PUT" : "POST";
+            const url = addressId
+                ? `/especialista/addresses/${addressId}/`
+                : `/especialista/addresses/`;
+
+            mostrarToastGlobal({
+                type: '',
+                message: '¿Está seguro de guardar esta dirección?',
+                buttons: [
+                    {
+                        id: 'confirmar',
+                        label: 'Confirmar',
+                        className: 'button-principal',
+                        onClick: () => {
+                            fetch(url, {
+                                method: method,
+                                headers: {
+                                    'Content-Type': 'application/json; charset=UTF-8',
+                                },
+                                body: JSON.stringify(data)
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        return response.json().then(err => {
+                                            throw new Error(err.message || "Error al guardar la dirección");
+                                        });
+                                    }
+                                    mostrarToastGlobal({
+                                        type: 'success',
+                                        message: 'Dirección guardada exitosamente.'
+                                    });
+                                    closeModal();
+                                })
+                                .catch(error => {
+                                    console.error("Error al guardar la dirección:", error);
+                                    mostrarToastGlobal({
+                                        type: 'danger',
+                                        message: 'Hubo un problema al guardar la dirección.'
+                                    });
+                                });
+                        }
+                    },
+                    {
+                        id: 'cancelar',
+                        label: 'Cancelar',
+                        className: 'button-edit',
+                        onClick: () => {
+                            mostrarToastGlobal({
+                                type: '',
+                                message: 'Guardado de dirección cancelado por el usuario.'
+                            });
+                        }
+                    }
+                ]
+            });
+        }
+
+        function deleteAddress(addressId) {
+            mostrarToastGlobal({
+                type: '',
+                message: '¿Está seguro de eliminar este consultorio?',
+                buttons: [
+                    {
+                        id: 'confirmar',
+                        label: 'Confirmar',
+                        className: 'button-principal',
+                        onClick: () => {
+                            fetch(`/especialista/addresses/${addressId}/`, {
+                                method: "DELETE",
+                                headers: {
+                                    'Content-Type': 'application/json; charset=UTF-8',
+                                },
+                            })
+                                .then(response => {
+                                    if (!response.ok) {
+                                        return response.json().then(err => {
+                                            throw new Error(err.message || "Error al eliminar el consultorio");
+                                        });
+                                    }
+                                    mostrarToastGlobal({
+                                        type: 'success',
+                                        message: 'Consultorio eliminado exitosamente.'
+                                    });
+                                    closeModal();
+                                })
+                                .catch(error => {
+                                    console.error("Error al eliminar el consultorio:", error);
+                                    mostrarToastGlobal({
+                                        type: 'danger',
+                                        message: 'Hubo un problema al eliminar la dirección.'
+                                    });
+                                });
+                        }
+                    },
+                    {
+                        id: 'cancelar',
+                        label: 'Cancelar',
+                        className: 'button-edit',
+                        onClick: () => {
+                            mostrarToastGlobal({
+                                type: '',
+                                message: 'Acción cancelada por el usuario.'
+                            });
+                        }
+                    }
+                ]
+            });
+        }
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            fetchDoctorData(renderUserInfo);
+        }
+    </script>
+</body>
+
+</html>

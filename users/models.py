@@ -32,7 +32,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=16, blank=True)
     username = models.CharField(max_length=45, blank=True)
-    photo = models.ImageField(upload_to="user", default="default.png")
+    photo= models.ImageField(upload_to="user", default="default.png")
     role = models.ForeignKey("Role", on_delete=models.SET_NULL, null=True, blank=True)
     status = models.BooleanField(default=True)
 

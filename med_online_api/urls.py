@@ -20,9 +20,9 @@ from .views import *
 
 urlpatterns = [
     path('', index, name='landing'),
-    path('quienes-somos', about_us, name='quienes-somos'),
+    path('quienes-somos/', about_us, name='quienes-somos'),
     path('admin/', admin.site.urls),
-    path('api/', include('doctors.urls')),
+    path('especialista/', include('doctors.urls')),
     path('schedule/', include('schedule.urls')),
     path('reviews/', include('reviews.urls')),
     path('users/', include('users.urls')),
