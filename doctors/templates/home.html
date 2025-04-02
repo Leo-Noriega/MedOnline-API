@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     {% load static %}
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
@@ -57,7 +58,7 @@
             <div class="d-flex align-items-center">
                 <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
                     aria-controls="offcanvasScrolling"><i class="bi bi-list"></i></button>
-                <h4 class="text-title">Hola, Dr. Julia Alarez</h4>
+                <h4 class="text-title">Hola, {{ nombre }} {{apellidos}}</h4>
             </div>
             <p class="text">Estas son algunas recomendaciones para lograr que más pacientes encuentren tu perfil.</p>
         </div>
@@ -101,10 +102,9 @@
                     <i class="bi bi-star-fill"></i>
                 </div>
                 <h6 class="mt-3 text-title">¿Quieres que más pacientes encuentren tu perfil?</h6>
-                <a class="text-decoration-none text mt-3 pe-auto">Agrega todos los servicios que brindas en tus
-                    consultorios</a>
+                <a class="text-decoration-none text mt-3 pe-auto" href="{% url 'opiniones' %}">Mantente informado de las opiciones de tus pacientes</a>
                 <hr class="borde-hr">
-                <a class="text-decoration-none text mt-3 pe-auto">Manten la información de tu consultorio
+                <a class="text-decoration-none text mt-3 pe-auto" href="{% url 'mis-consultorios' %}">Manten la información de tu consultorio
                     actualizada</a>
                 <hr class="borde-hr">
             </div>
@@ -116,7 +116,7 @@
                 <h6 class="mt-3 text-title">Construye confianza con tus pacientes</h6>
                 <a class="text-decoration-none text link mt-3 pe-auto">Manten tu agenda en orden y actualizada</a>
                 <hr class="borde-hr">
-                <a class="text-decoration-none text link mt-3 pe-auto">Haz que tu perfil sea agradable para los pacientes</a>
+                <a class="text-decoration-none text link mt-3 pe-auto" href="{% url 'mi-cuenta' %}">Haz que tu perfil sea agradable para los pacientes</a>
                 <hr class="borde-hr">
             </div>
         </div>

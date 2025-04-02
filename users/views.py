@@ -6,6 +6,9 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormView
+from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect
+from django.contrib.auth import logout, login
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
@@ -33,6 +36,18 @@ class UserViewSets(viewsets.ModelViewSet):
 @method_decorator(csrf_exempt, name='dispatch')
 class CustomLoginView(FormView):
     template_name = "users/login.html"
+
+    def form_valid(self, form):
+        user = form.get_user()
+        login(self.request, user)
+        if user.role.name == 'Doctor':
+            return redirect('inicio')
+        elif user.role.name== 'Patient':
+            return redirect('/')
+        elif user.role.name == 'Admin':
+            return redirect('/')
+        else:
+            return redirect('/')
     form_class = CustomLoginForm
 
     def post(self, request, *args, **kwargs):
@@ -56,6 +71,10 @@ class CustomLoginView(FormView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+def cerrar_sesion(request):
+    logout(request)
+    return redirect('/')
 
 
 def register(request):
