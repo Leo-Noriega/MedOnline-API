@@ -71,6 +71,7 @@ body {
 a{
     cursor: pointer;
 }
+
 @keyframes pulse {
     0% { box-shadow: 0 0 0 0 currentColor; }
     100% { box-shadow: 0 0 0 2em transparent; }

@@ -16,8 +16,6 @@ from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from reviews.models import Review
 
-
-
 class DoctorViewSet(viewsets.ModelViewSet):
     queryset = Doctor.objects.all()
     serializer_class = DoctorSerializer

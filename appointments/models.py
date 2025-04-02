@@ -1,6 +1,9 @@
 from django.db import models
 from django.conf import settings
-from doctors.models import Doctor,Address
+from doctors.models import Doctor, Address
+import logging
+
+logger = logging.getLogger(__name__)
 
 class Status(models.IntegerChoices):
     PENDING = 1, 'Pending'
@@ -13,19 +16,30 @@ class Gender(models.IntegerChoices):
     FEMALE = 2, 'Female'
     OTHER = 3, 'Other'
 
-
 class Appointment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_user")
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appoitnments')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
     address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='addresses')
-    patient_name = models.CharField(max_length=60, blank=False, null=False)
-    patient_surnames = models.CharField(max_length=80, blank=False, null=False)
-    birthdate = models.DateField(null=False, blank=False)
-    gender = models.IntegerField(choices=Gender.choices, blank=False, null=False)
-    phone = models.CharField(max_length=16, blank=False, null=False)
+    patient_name = models.CharField(max_length=60, blank=True, null=True)
+    patient_surnames = models.CharField(max_length=80, blank=True, null=True)
+    birthdate = models.DateField(null=True, blank=True)
+    gender = models.IntegerField(choices=Gender.choices, blank=True, null=True)
+    phone = models.CharField(max_length=16, blank=True, null=True)
     note = models.TextField(blank=True, null=True)
     appointment_date = models.DateTimeField(null=False, blank=False)
-    status = models.IntegerField(choices=Status.choices, default=Status.PENDING, blank=False, null=False)
+    status = models.IntegerField(choices=Status.choices, default=Status.PENDING, blank=False, null=True)
     
     def __str__(self):
-        return f"Patient {self.user.name} {self.user.surnames} - {self.user.username}"
+        return f"Patient {self.patient_name} {self.patient_surnames} - Doctor {self.doctor.name} - Date {self.appointment_date}"
+    
+    def save(self, *args, **kwargs):
+        # Verificar si el estado ha cambiado
+        if self.pk:  # Si ya existe en la base de datos
+            previous = Appointment.objects.get(pk=self.pk)
+            if previous.status != self.status:
+                from reviews.models import Review 
+                print(f"El estado ha cambiado: {previous.status} -> {self.status}")  # Depuración
+                logger.info(f"El estado ha cambiado: {previous.status} -> {self.status}")
+                Review.handle_appointment_status_change(self)
+
+        super().save(*args, **kwargs)  # Guardar normalmente en la base de datos

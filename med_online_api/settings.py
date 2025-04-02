@@ -7,6 +7,7 @@ from pathlib import Path
 import json
 import os
 from datetime import timedelta
+import base64
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,6 +27,7 @@ BASE_URL = conf["base_url"]
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = conf["secret_key"]
+FERNET_KEY = base64.urlsafe_b64encode(SECRET_KEY.encode()[:32])
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = conf["debug"]
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     "reviews",
     "schedule",
     "doctors",
+    "mails",
     "rest_framework",
     "rest_framework_simplejwt",
     "django.contrib.admin",
@@ -136,7 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Mexico_City"  
 
 USE_I18N = True
 
@@ -157,3 +160,9 @@ LOGIN_REDIRECT_URL = "/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+EMAIL_HOST = 'smtp.googlemail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = conf["email_user"]
+EMAIL_HOST_PASSWORD = conf["email_password"]
+EMAIL_USE_TLS = True
