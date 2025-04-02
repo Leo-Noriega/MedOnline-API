@@ -26,7 +26,6 @@ class Doctor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="doctor")
     years_experience = models.PositiveSmallIntegerField()
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2) 
-    status = models.BooleanField(default=True)  
     
     def __str__(self):
         return f"Dr. {self.user.name}"
@@ -34,7 +33,7 @@ class Doctor(models.Model):
 class DoctorSpecialty(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     specialty = models.ForeignKey(Specialty, on_delete=models.CASCADE)
-    license_number = models.CharField(max_length=8, unique=True)  
+    license_number = models.CharField(max_length=15, unique=True)  
 
     class Meta:
         constraints = [
