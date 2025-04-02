@@ -20,7 +20,7 @@ def update_last_login(sender, user, **kwargs):
 # == ROLES predeterminados entonrno de desarrollo ==
 @receiver(post_migrate)
 def create_default_roles(sender, **kwargs):
-    roles = ["Admin", "Doctor", "User"]
+    roles = ["Admin", "Doctor", "Patient"]
     for role in roles:
         if not Role.objects.filter(name=role).exists():
             Role.objects.create(name=role)
@@ -56,7 +56,7 @@ def create_defaullt_user(sender, **kwargs):
         print('=== USUARIO DOCTOR PARA DESARROLLO CREADO ===')
 
     if not CustomUser.objects.filter(email="user@mail.com").exists():
-        user_role = Role.objects.get(name="User")
+        user_role = Role.objects.get(name="Patient")
         CustomUser.objects.create_user(
             email="user@mail.com",
             password="user",

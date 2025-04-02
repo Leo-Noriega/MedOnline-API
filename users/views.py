@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth import authenticate, login
 from django.http.response import JsonResponse
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormView
@@ -55,3 +56,7 @@ class CustomLoginView(FormView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+
+def register(request):
+    return render(request, 'users/register.html', status=200)

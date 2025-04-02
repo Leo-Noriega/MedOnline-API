@@ -12,38 +12,41 @@
 </head>
 <body class="d-flex flex-column min-vh-100">
 {% include '_navBar.html' %}
-<div class="container d-flex flex-column align-items-center vh-100 my-5">
+<div class="container flex-grow-1 my-5">
     <div class="text-center my-5">
         <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px"/>
         <h1 class="text-title">Inicio de Sesión</h1>
     </div>
-    <div class="w-100" style="max-width: 70vh">
-        <form id="loginForm" class="w-100" method="POST">
-            {% csrf_token %}
-            <div class="mb-3">
-                <label for="id_username" class="form-label text-second">Correo Electrónico</label>
-                {{ form.email }}
-            </div>
-            <div class="mb-3">
-                <label for="id_password" class="form-label text-second">Contraseña</label>
-                {{ form.password }}
-            </div>
-            {% if error %}
-                <div class="text-center alert alert-danger" role="alert">
-                    {{ error }}
+    <div class="container flex-grow-1 my-5 d-flex justify-content-center align-items-center">
+        <div class="w-100" style="max-width: 70vh">
+            <form id="loginForm" class="w-100" method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_username" class="form-label text-second">Correo Electrónico</label>
+                    {{ form.email }}
                 </div>
-            {% endif %}
-            <button type="submit" class="btn w-100 primary-color fw-bold" style="color: #FFFFFF">INICIAR SESIÓN</button>
-        </form>
+                <div class="mb-3">
+                    <label for="id_password" class="form-label text-second">Contraseña</label>
+                    {{ form.password }}
+                </div>
+                {% if error %}
+                    <div class="text-center alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                {% endif %}
+                <button type="submit" class="btn w-100 primary-color fw-bold" style="color: #FFFFFF">INICIAR SESIÓN
+                </button>
+            </form>
+        </div>
     </div>
-    <div class="mt-5">
+    <div class="mt-5 text-center">
         <a href="#" class="text-decoration-none text-second">He olvidado mi contraseña</a>
     </div>
     <div class="mt-5 text-center">
-        <span>¿Todavía no tienes cuenta? <a href="#"
-                                            class="text-decoration-none text-second">Quiero registrarme</a></span>
+        <span>¿Todavía no tienes cuenta? <a href="{% url 'registro' %}" class="text-decoration-none text-second">Quiero registrarme</a></span>
     </div>
 </div>
+{% include '_footer.html' %}
 <script>
     document.getElementById('loginForm').addEventListener('submit', async function (event) {
         event.preventDefault();
