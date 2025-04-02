@@ -28,4 +28,5 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('appointments/', include('appointments.urls')),
     path('email/', include('mails.urls')),
+    path('api/admin/', include('custom_admin.urls')),
 ]

@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<header class="bg-white shadow-sm pt-1 px-0 fixed-top" style="height: 40px;">
+    <nav class="navbar bg-white">
+        <div class="container-fluid">
+            <div class="d-flex align-items-center">
+                <button class="btn text-dark" type="button" data-bs-toggle="offcanvas"
+                    data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling">
+                    <i class="bi bi-list"></i>
+                </button>
+                <a href="{% url 'home' %}" class="navbar-brand">
+                    <img src="{% static 'img/logo.png' %}" alt="MedOnline" class="logo" style="height: 40px;">
+                </a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+
+<div class="offcanvas offcanvas-start offcanvas-lg bg-light" data-bs-scroll="true" data-bs-backdrop="false"
+    tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel" style="width: 200px; top: 56px;">
+    <div class="offcanvas-header justify-content-end">
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    {% include 'admin_sidebar.html' %}
+</div>
+
+
+<main class="p-3" style="margin-top: 38px;"></main>
+
+
+    <nav class="navbar navbar-expand-lg navbar-dark " style="background-color: #2E5077;">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+            
+                </ul>
+
+                <div class="d-flex">
+                    <div class="input-group">
+                        <select class="form-select" id="filtro">
+                            <option selected>Filtro</option>
+                            <option value="nombre">Nombre</option>
+                            <option value="correo">Correo</option>
+                            <option value="rol">Rol</option>
+                        </select>
+                        <input type="text" class="form-control" placeholder="Buscar...">
+                        <button class="btn btn-primary" type="button" id="buscar-btn">Buscar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Nombre del usuario</th>
+                                <th scope="col">Correo</th>
+                                <th scope="col">Rol</th>
+                                <th scope="col">Fecha de registro</th>
+                                <th scope="col">Teléfono</th>
+                                <th scope="col">Status</th>
+                                <th scope="col">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for usuario in usuarios %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ usuario.nombre }}</td>
+                                <td>{{ usuario.correo }}</td>
+                                <td>{{ usuario.rol }}</td>
+                                <td>{{ usuario.fecha_registro|date:"d/m/Y" }}</td>
+                                <td>{{ usuario.telefono }}</td>
+                                <td>
+                                    <div class="status-indicator {% if usuario.activo %}active{% endif %}"></div>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary">≪</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center">No hay usuarios registrados</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</main>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+
+    header .navbar {
+        background-color: white !important;
+    }
+
+   
+    main .navbar {
+        background-color: rgba(29, 106, 111, 0.1);
+    }
+
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #ccc;
+        display: inline-block;
+    }
+
+    .status-indicator.active {
+        background-color: #28a745;
+    }
+
+    .btn-primary {
+        background-color: #4285f4;
+        border-color: #4285f4;
+    }
+
+    .btn-primary:hover {
+        background-color: #2E5077;
+        border-color: #2E5077;
+    }
+</style>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/admin.js' %}"></script>
+{% endblock %}
