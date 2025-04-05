@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Cita Confirmada</title>
 </head>
-<body>
-    <h2>Hola {{ user_name }},</h2>
-    <p>Tu cita con el doctor <strong>{{ doctor_name }}</strong> ha sido confirmada.</p>
-    <p><strong>Fecha y hora:</strong> {{ appointment_date }}</p>
-    <p>Si necesitas cambiar la cita, por favor contáctanos.</p>
-    <p>Gracias,</p>
-    <p>El equipo de atención médica</p>
+<body style="font-family: Arial, sans-serif; background-color: #ffffff; color: #2e5077; padding: 20px;">
+    <div style="max-width: 600px; margin: auto; border: 1px solid #4da1a9; border-radius: 8px; padding: 20px;">
+        <h2 style="color: #2e5077;">Hola {{ user_name }},</h2>
+        <p>Tu cita con el doctor <strong>{{ doctor_name }}</strong> ha sido confirmada.</p>
+        <p><strong>Fecha y hora:</strong> {{ appointment_date }}</p>
+        <p>Si necesitas cambiar la cita, por favor contáctanos a la brevedad.</p>
+        <p style="margin-top: 40px;">Gracias,<br>El equipo de atención médica</p>
+    </div>
 </body>
 </html>
