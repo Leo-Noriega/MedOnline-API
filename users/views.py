@@ -1,14 +1,12 @@
 import json
 
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.http.response import JsonResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormView
-from django.contrib.auth.views import LoginView
-from django.shortcuts import redirect
-from django.contrib.auth import logout, login
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
@@ -17,7 +15,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .forms import CustomLoginForm
-from .serializers import *
+from .models import CustomUser
+from .serializers import CustomUserSerializer, CustomTokenObtainPairSerializer
 
 
 class UserViewSets(viewsets.ModelViewSet):
@@ -33,21 +32,25 @@ class UserViewSets(viewsets.ModelViewSet):
         return []
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class CustomLoginView(FormView):
-    template_name = "users/login.html"
+from django.shortcuts import redirect
 
-    def form_valid(self, form):
-        user = form.get_user()
-        login(self.request, user)
-        if user.role.name == 'Doctor':
-            return redirect('inicio')
-        elif user.role.name== 'Patient':
-            return redirect('/')
-        elif user.role.name == 'Admin':
-            return redirect('/')
-        else:
-            return redirect('/')
+
+def get_redirect_url(user):
+    role = user.role.name if user.role else None
+
+    # if role == 'Admin':
+    #     return reverse('landing')
+    if role == 'Doctor':
+        return reverse('inicio')
+    # elif role == 'Patient':
+    #     return reverse('inicio')
+    else:
+        return reverse('login')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CustomLoginViewAPI(FormView):
+    template_name = "users/login.html"
     form_class = CustomLoginForm
 
     def post(self, request, *args, **kwargs):
@@ -62,15 +65,23 @@ class CustomLoginView(FormView):
         if user is not None:
             login(request, user)
             refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+            refresh_token = str(refresh)
+
+            redirect_url = get_redirect_url(user)
+
             return JsonResponse({
-                'access_token': str(refresh.access_token),
-                'refresh_token': str(refresh)
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'redirect_url': redirect_url
             })
+
         return JsonResponse({'error': 'Credenciales incorrectas'}, status=401)
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
 
 def cerrar_sesion(request):
     logout(request)
