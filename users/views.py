@@ -1,4 +1,6 @@
 from django.contrib.auth.views import LoginView
+from django.shortcuts import redirect
+from django.contrib.auth import logout, login
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -25,6 +27,22 @@ class UserViewSets(viewsets.ModelViewSet):
 class CustomLoginView(LoginView):
     authentication_form = CustomLoginForm
     template_name = "users/login.html"
+    
+    def form_valid(self, form):
+        user = form.get_user()
+        login(self.request, user)
+        if user.role.name == 'Doctor':
+            return redirect('inicio')
+        elif user.role.name== 'Patient':
+            return redirect('/')
+        elif user.role.name == 'Admin':
+            return redirect('/')
+        else:
+            return redirect('/') 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+def cerrar_sesion(request):
+    logout(request)
+    return redirect('/')
