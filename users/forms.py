@@ -4,8 +4,9 @@ from django.contrib.auth.forms import AuthenticationForm
 
 INPUT_CLASS = 'form-control'
 
+
 class CustomLoginForm(AuthenticationForm):
-    username = forms.EmailField(
+    email = forms.EmailField(
         label="Correo Electrónico",
         widget=forms.TextInput(attrs={'class': INPUT_CLASS})
     )

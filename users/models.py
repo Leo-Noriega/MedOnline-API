@@ -1,12 +1,71 @@
+from autoslug import AutoSlugField
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
-    PermissionsMixin,
+    PermissionsMixin
 )
-
+from django.contrib.auth.signals import user_logged_in
 from django.db import models
+from django.db.models.signals import post_migrate
+from django.dispatch.dispatcher import receiver
 from django.utils.timezone import now
-from autoslug import AutoSlugField
+
+
+@receiver(user_logged_in)
+def update_last_login(sender, user, **kwargs):
+    user.last_login = now()
+    user.save()
+
+
+# == ROLES predeterminados entonrno de desarrollo ==
+@receiver(post_migrate)
+def create_default_roles(sender, **kwargs):
+    roles = ["Admin", "Doctor", "Patient"]
+    for role in roles:
+        if not Role.objects.filter(name=role).exists():
+            Role.objects.create(name=role)
+            print(f"=== ROL {role} PARA DESARROLLO CREADO ===")
+
+
+# == USERS predeterminados entonrno de desarrollo ==
+# TODO: Borrar en producción
+@receiver(post_migrate)
+def create_defaullt_user(sender, **kwargs):
+    if not CustomUser.objects.filter(email="admin@mail.com").exists():
+        admin_role = Role.objects.get(name="Admin")
+        CustomUser.objects.create_superuser(
+            email="admin@mail.com",
+            password="admin",
+            name="Admin",
+            surnames="Admin",
+            username="admin",
+            role=admin_role
+        )
+        print('=== USUARIO ADMIN PARA DESARROLLO CREADO ===')
+
+    if not CustomUser.objects.filter(email="doctor@mail.com").exists():
+        doctor_role = Role.objects.get(name="Doctor")
+        CustomUser.objects.create_user(
+            email="doctor@mail.com",
+            password="doctor",
+            name="Doctor",
+            surnames="Doctor",
+            username="doctor",
+            role=doctor_role
+        )
+        print('=== USUARIO DOCTOR PARA DESARROLLO CREADO ===')
+
+    if not CustomUser.objects.filter(email="user@mail.com").exists():
+        user_role = Role.objects.get(name="Patient")
+        CustomUser.objects.create_user(
+            email="user@mail.com",
+            password="user",
+            name="User",
+            surnames="User",
+            username="user",
+            role=user_role
+        )
+        print('=== USUARIO USER PARA DESARROLLO CREADO ===')
 
 
 class CustomUserManager(BaseUserManager):
@@ -26,7 +85,6 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    token= models.CharField(max_length=255, blank=True, null=True)
     name = models.CharField(max_length=60, blank=True)
     surnames = models.CharField(max_length=80, blank=True)
     email = models.EmailField(unique=True)
@@ -35,7 +93,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     photo= models.ImageField(upload_to="user", default="default.png")
     role = models.ForeignKey("Role", on_delete=models.SET_NULL, null=True, blank=True)
     status = models.BooleanField(default=True)
-
     join_date = models.DateTimeField(default=now)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -56,8 +113,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 class Role(models.Model):
     name = models.CharField(max_length=45, blank=True)
-    slug = AutoSlugField(populate_from="name")
-
     def __str__(self):
         return self.name
 
