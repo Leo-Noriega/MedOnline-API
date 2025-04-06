@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Califica tu consulta</title>
 </head>
-<body>
-    <h2>Hola {{ user_name }},</h2>
-    <p>Gracias por asistir a tu cita con el doctor <strong>{{ doctor_name }}</strong>.</p>
-    <p><strong>Fecha de la cita:</strong> {{ appointment_date }}</p>
-    <p>Queremos saber tu opinión sobre la consulta. Por favor, califica al doctor haciendo clic en el siguiente enlace:</p>
-    <p><a href="{{ review_link }}" style="display: inline-block; padding: 10px 15px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px;">Calificar ahora</a></p>
-    <p>Tu opinión es muy importante para nosotros.</p>
-    <p>Gracias,</p>
-    <p>El equipo de atención médica</p>
+<body style="font-family: Arial, sans-serif; background-color: #ffffff; color: #2e5077; padding: 20px;">
+    <div style="max-width: 600px; margin: auto; border: 1px solid #4da1a9; border-radius: 8px; padding: 20px;">
+        <h2 style="color: #2e5077;">Hola {{ user_name }},</h2>
+        <p>Gracias por asistir a tu cita con el doctor <strong>{{ doctor_name }}</strong>.</p>
+        <p><strong>Fecha de la cita:</strong> {{ appointment_date }}</p>
+        <p>Queremos saber tu opinión sobre la consulta. Por favor, califica al doctor haciendo clic en el siguiente botón:</p>
+        <p>
+            <a href="{{ review_link }}" style="display: inline-block; padding: 12px 20px; background-color: #4da1a9; color: #ffffff; text-decoration: none; border-radius: 6px;">Calificar ahora</a>
+        </p>
+        <p>Tu opinión es muy importante para nosotros.</p>
+        <p style="margin-top: 40px;">Gracias,<br>El equipo de atención médica</p>
+    </div>
 </body>
 </html>
