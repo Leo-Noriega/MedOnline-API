@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Doctor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <style>
+        @media (min-width: 992px) {
+            main {
+                transition: margin-left 0.5s ease;
+            }
+            main.shifted {
+                margin-left: 200px;
+            }
+            .offcanvas {
+                padding: 20px;
+                top: 56px;
+            }
+        }
+
+        .link-hover.active {
+            border-left-color: rgba(30, 128, 145, 0.7);
+            background-color: rgba(29, 106, 111, 0.1);
+        }
+
+        .link-hover {
+            border-left: 4px solid transparent;
+            background-color: transparent;
+            transition: background-color 0.3s ease, border-left-color 0.3s ease;
+        }
+
+        .link-hover:hover {
+            border-left-color: rgba(30, 128, 145, 0.7);
+            background-color: rgba(29, 106, 111, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+    {% csrf_token %}
+    {% include 'header.html' %}
+    
+    <div class="offcanvas offcanvas-start offcanvas-lg bg-light" data-bs-scroll="true" data-bs-backdrop="false"
+        tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel" style="width: 200px; top: 56px;">
+        <div class="offcanvas-header justify-content-end">
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        {% include 'admin_sidebar.html' %}
+    </div>
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Doctor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+
+<body>
+    {% csrf_token %}
+    {% include 'header.html' %}
+
+    <div class="offcanvas offcanvas-start offcanvas-lg bg-light" data-bs-scroll="true" data-bs-backdrop="false"
+        tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel" style="width: 200px;">
+        <div class="offcanvas-header justify-content-end">
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        {% include 'admin_sidebar.html' %}
+    </div>
+
+    <main class="p-3">
+        <div class="p-2">
+            <div class="d-flex align-items-center">
+                <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h4 class="text-title">Información del Doctor</h4>
+            </div>
+            <hr class="borde-hr" />
+        </div>
+
+      
+        <div id="info-doctor" class="rounded p-3 m-auto bg-section my-5">
+           
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="rounded p-3 bg-section mb-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        
+                    </div>
+                    <div id="specialties-container">
+                        
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="rounded p-3 bg-section mb-4">
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5 class="text-title mb-0">Consultorios</h5>
+                    </div>
+                    <div id="addresses-container">
+                       
+                    </div>
+                </div>
+            </div>
+        </div>
+
+  
+        <div class="rounded p-3 bg-section mb-4">
+            <div class="d-flex justify-content-between mb-3">
+                <h5 class="text-title mb-0">Horarios de Atención</h5>
+            </div>
+            <div id="schedules-container" class="row">
+              
+            </div>
+        </div>
+
+       
+        <div class="rounded p-3 bg-section">
+            <h5 class="text-title mb-3">Historial de Citas</h5>
+            <div class="table-responsive">
+                <table id="appointmentsTable" class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Paciente</th>
+                            <th>Consultorio</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="{% static 'js/toast_alerts.js' %}"></script>
+
+    <script>
+        
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+            document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+    }
+        function createField(label, value) {
+            return `<div class="col-md-4 col-sm-6 col-12">
+        <p class="text-title fw-semibold mb-0">${label}:</p>
+        <p>${value || ''}</p>
+    </div>`;
+        }
+
+        function createInputField(label, value, id, type = "text") {
+            return `<div class="col-md-4 col-sm-6 col-12 my-2">
+        <label class="text-title fw-semibold mb-0">${label}:</label>
+        <input id="${id}" 
+               class="form-control" 
+               type="${type}" 
+               value="${value || ''}" />
+        <div class="invalid-feedback"></div>
+    </div>`;
+        }
+
+   
+function loadDoctorData() {
+    const userId = sessionStorage.getItem('user_id');
+  
+
+    if (!userId) {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: 'No se encontró ID del doctor'
+        });
+        return;
+    }
+
+    
+    const containers = ['info-doctor', 'specialties-container', 'addresses-container', 'schedules-container'];
+    containers.forEach(containerId => {
+        document.getElementById(containerId).innerHTML = `
+            <div class="text-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>`;
+    });
+
+   
+    fetch(`/admin/doctors/${userId}/`, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(async response => {
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.message || 'Error al cargar la información del doctor');
+        }
+        
+        return data;
+    })
+    .then(response => {
+        if (response.status === 'error') {
+            throw new Error(response.message);
+        }
+
+        const data = response.data;
+        if (!data || !data.doctor) {
+            throw new Error('Estructura de datos inválida');
+        }
+
+       
+        renderDoctorInfo({ doctor: data.doctor });
+        renderSpecialties(data.specialties || []);
+        renderAddresses(data.addresses || []);
+        renderSchedules(data.schedules || []);
+        
+       
+        initializeAppointmentsTable(data.appointments || []);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        containers.forEach(containerId => {
+            document.getElementById(containerId).innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    ${error.message || 'Error al cargar la información'}
+                </div>`;
+        });
+
+        mostrarToastGlobal({
+            type: 'danger',
+            message: error.message || 'Error al cargar la información del doctor'
+        });
+    });
+}
+
+
+        function initializeAppointmentsTable(appointments) {
+            const table = $('#appointmentsTable').DataTable({
+                data: appointments,
+                destroy: true,
+                columns: [
+                    {
+                        data: 'date',
+                        render: function (data) {
+                            return new Date(data).toLocaleString('es-ES', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    },
+                    {
+                        data: 'doctor',
+                        render: function (data) {
+                            return `<span class="fw-semibold">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'clinic',
+                        render: function (data) {
+                            return `<span class="text-muted">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'status',
+                        render: function (data) {
+                            const statusClasses = {
+                                'Pending': 'bg-warning text-dark',
+                                'Confirmed': 'bg-info text-white',
+                                'Cancelled': 'bg-danger text-white',
+                                'Completed': 'bg-success text-white'
+                            };
+                            const statusClass = statusClasses[data] || 'bg-secondary';
+                            return `<span class="badge ${statusClass}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function (data) {
+                            const isCompleted = data.status === 'Completed';
+                            return `
+                            <button class="button-edit" onclick="changeStatus(${data.id}, '${data.status}')">
+                                <i class="bi bi-pencil-square"></i> 
+                                Cambiar estado
+                            </button>`;
+                        }
+                    }
+                ],
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+                },
+                order: [[0, 'desc']],
+                responsive: true,
+                pageLength: 5,
+                dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center"ip>',
+                lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]]
+            });
+
+            return table;
+        }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  
+    const userId = sessionStorage.getItem('user_id');
+    if (userId) {
+        loadDoctorData();
+    } else {
+        console.error('No se encontró ID del doctor en sessionStorage');
+        mostrarToastGlobal({
+            type: 'danger',
+            message: 'No se encontró ID del doctor'
+        });
+    }
+});
+
+function renderDoctorInfo(data) {
+    if (!data || !data.doctor) {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: 'No se encontró información del doctor'
+        });
+        return;
+    }
+
+    const container = document.getElementById('info-doctor');
+    const doctor = data.doctor;
+
+    container.innerHTML = `
+        <div class="d-flex justify-content-between mb-3">
+            <div class="d-flex align-items-center">
+                <img src="${doctor.photo}" 
+                     class="rounded-circle me-3" 
+                     style="width: 60px; height: 60px;"
+                     alt="Doctor photo"
+                     >
+                <div>
+                    <h5 class="mb-0">${doctor.name || ''} ${doctor.surnames || ''}</h5>
+                    <small class="text-muted">${doctor.email || ''}</small>
+                </div>
+            </div>
+            <button class="button-edit" onclick="editDoctor(${JSON.stringify(doctor).replace(/"/g, '&quot;')})">
+                <i class="bi bi-pencil"></i> Editar
+            </button>
+        </div>
+        <div class="row">
+            ${createField('Usuario', doctor.username)}
+            ${createField('Teléfono', doctor.phone)}
+            ${createField('Años de experiencia', doctor.years_experience)}
+            ${createField('Costo de consulta', doctor.consultation_fee ? `$${doctor.consultation_fee}` : '')}
+            ${createField('Estado', doctor.status ? 'Activo' : 'Inactivo')}
+        </div>`;
+}
+
+
+
+function renderAddresses(addresses) {
+    const container = document.getElementById('addresses-container');
+    if (!addresses.length) {
+        container.innerHTML = '<p class="text-muted">No hay consultorios registrados</p>';
+        return;
+    }
+
+    container.innerHTML = addresses.map(address => `
+        <div class="card mb-2">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-0">${address.clinic_name}</h6>
+                    <small class="text-muted">${address.street}, ${address.city}</small>
+                </div>
+                <button class="button-edit" onclick='editAddressDetails(${JSON.stringify(address).replace(/"/g, "&quot;")})'>
+                    <i class="bi bi-pencil">Editar</i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+
+function renderSchedules(schedules) {
+    const container = document.getElementById('schedules-container');
+    if (!schedules.length) {
+        container.innerHTML = '<p class="text-muted">No hay horarios registrados</p>';
+        return;
+    }
+
+    container.innerHTML = schedules.map(schedule => `
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0">${schedule.weekday}</h6>
+                        <button class="button-edit" onclick='editScheduleDetails(${JSON.stringify(schedule).replace(/"/g, "&quot;")})'>
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </div>
+                    <p class="mb-1"><small>Tiempo de consulta: ${schedule.consultation_time}</small></p>
+                    ${schedule.times.map(time => `
+                        <div class="badge bg-light text-dark mb-1">
+                            ${time.start_time} - ${time.end_time}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+    function editSpecialtyDetails(specialty) {
+     
+
+        if (!specialty || !specialty.doctor_id) {
+            mostrarToastGlobal({
+                type: 'danger',
+                message: 'Datos de especialidad inválidos'
+            });
+            return;
+        }
+
+        mostrarToastGlobal({
+            type: '',
+            message: `
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label class="text-title fw-semibold mb-0">Nombre de la Especialidad:</label>
+                    <input id="specialty_name" class="form-control" type="text" value="${specialty.name || ''}">
+                </div>
+                <div class="col-12">
+                    <label class="text-title fw-semibold mb-0">Número de Licencia:</label>
+                    <input id="license_number" class="form-control" type="text" value="${specialty.license_number || ''}">
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="button-edit me-2" onclick="closeToast()">Cancelar</button>
+                <button class="button-principal" onclick="updateSpecialty(${specialty.doctor_id}, ${specialty.doctor_specialty_id})">
+                    Guardar
+                </button>
+            </div>
+        `
+        });
+    }
+
+
+    function renderSpecialties(specialties) {
+        const container = document.getElementById('specialties-container');
+        if (!specialties.length) {
+            container.innerHTML = '<p class="text-muted">No hay especialidades registradas</p>';
+            return;
+        }
+
+        const userId = sessionStorage.getItem('user_id');
+
+        container.innerHTML = `
+        <div class="d-flex justify-content-between mb-3">
+            <h5 class="text-title mb-0">Especialidades</h5>
+        </div>
+        ${specialties.map(specialty => `
+            <div class="card mb-2">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0 text-primary">${specialty.name || ''}</h6>
+                            <small class="text-muted">Licencia: ${specialty.license_number || ''}</small>
+                        </div>
+                        <button class="button-edit" onclick='editSpecialtyDetails(${JSON.stringify({
+            ...specialty,
+            doctor_id: userId
+        }).replace(/'/g, "\\'")})'">
+                            <i class="bi bi-pencil"></i> Editar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `).join('')}`;
+    }
+
+function updateSpecialty(doctorId, doctorSpecialtyId) {
+
+
+    if (!doctorId || !doctorSpecialtyId) {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: 'IDs inválidos'
+        });
+        return;
+    }
+
+    const data = {
+        name: document.getElementById('specialty_name').value.trim(),
+        license_number: document.getElementById('license_number').value.trim()
+    };
+
+    if (!data.name || !data.license_number) {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: 'Todos los campos son requeridos'
+        });
+        return;
+    }
+
+    fetch(`/admin/doctors/${doctorId}/specialties/${doctorSpecialtyId}/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Error al actualizar la especialidad');
+            });
+        }
+        return response.json();
+    })
+    .then(result => {
+        if (result.status === 'error') {
+            throw new Error(result.message);
+        }
+        
+        mostrarToastGlobal({
+            type: 'success',
+            message: result.message
+        });
+        
+        closeToast();
+        loadDoctorData();
+    })
+    .catch(error => {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: error.message || 'Error al actualizar la especialidad'
+        });
+    });
+}
+
+function editAddressDetails(address) {
+    mostrarToastGlobal({
+        type: '',
+        message: `
+            <div class="row">
+                ${createInputField('Nombre de la Clínica', address.clinic_name, 'clinic_name')}
+                ${createInputField('Calle', address.street, 'street')}
+                ${createInputField('Ciudad', address.city, 'city')}
+                ${createInputField('Estado', address.state, 'state')}
+                ${createInputField('Código Postal', address.postal_code, 'postal_code')}
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="button-edit me-2" onclick="closeToast()">Cancelar</button>
+                <button class="button-principal" onclick="updateAddress(${address.id})">
+                    Guardar
+                </button>
+            </div>
+        `
+    });
+}
+
+
+function editScheduleDetails(schedule) {
+    mostrarToastGlobal({
+        type: '',
+        message: `
+            <div class="row">
+                <div class="col-12 mb-3">
+                    <label class="text-title fw-semibold mb-0">Tiempo de consulta (HH:MM:SS):</label>
+                    <input id="consultation_time" class="form-control" type="time" step="1" value="${schedule.consultation_time}">
+                </div>
+                <div id="times-container">
+                    ${schedule.times.map((time, index) => `
+                        <div class="row mb-2">
+                            <div class="col-5">
+                                <input type="time" class="form-control start-time" value="${time.start_time}">
+                            </div>
+                            <div class="col-5">
+                                <input type="time" class="form-control end-time" value="${time.end_time}">
+                            </div>
+                            <div class="col-2">
+                                <button class="btn btn-danger btn-sm" onclick="removeTimeSlot(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="col-12">
+                    <button class="button-edit" onclick="addTimeSlot()">
+                        <i class="bi bi-plus"></i> Agregar horario
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="button-edit me-2" onclick="closeToast()">Cancelar</button>
+                <button class="button-principal" onclick="updateSchedule(${schedule.doctor_id}, ${schedule.weekday_value})">
+                    Guardar
+                </button>
+            </div>
+        `
+    });
+}
+
+function editDoctor(doctorData) {
+    mostrarToastGlobal({
+        type: '',
+        message: `
+            <div class="row">
+                ${createInputField('Nombre', doctorData.name, 'name')}
+                ${createInputField('Apellidos', doctorData.surnames, 'surnames')}
+                ${createInputField('Usuario', doctorData.username, 'username')}
+                ${createInputField('Email', doctorData.email, 'email')}
+                ${createInputField('Teléfono', doctorData.phone, 'phone')}
+                ${createInputField('Años de experiencia', doctorData.years_experience, 'years_experience', 'number')}
+                ${createInputField('Costo de consulta', doctorData.consultation_fee, 'consultation_fee', 'number')}
+                <div class="col-12">
+                    <label class="text-title fw-semibold mb-0">Estado:</label>
+                    <select id="status" class="form-select">
+                        <option value="true" ${doctorData.status ? 'selected' : ''}>Activo</option>
+                        <option value="false" ${!doctorData.status ? 'selected' : ''}>Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="d-flex justify-content-end mt-3">
+                <button class="button-edit me-2" onclick="closeToast()">Cancelar</button>
+                <button class="button-principal" onclick="updateDoctor(${doctorData.id})">Guardar</button>
+            </div>
+        `
+    });
+}
+
+
+function updateDoctor(doctorId) {
+    const data = {
+        name: document.getElementById('name').value,
+        surnames: document.getElementById('surnames').value,
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value,
+        years_experience: document.getElementById('years_experience').value,
+        consultation_fee: document.getElementById('consultation_fee').value,
+        status: document.getElementById('status').value === 'true'
+    };
+
+    fetch(`/admin/doctors/update/${doctorId}/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.error) {
+            throw new Error(result.error);
+        }
+        mostrarToastGlobal({
+            type: 'success',
+            message: 'Información actualizada exitosamente'
+        });
+        loadDoctorData();
+    })
+    .catch(error => {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: error.message || 'Error al actualizar la información'
+        });
+    });
+}
+
+
+function updateAddress(addressId) {
+    const data = {
+        clinic_name: document.getElementById('clinic_name').value,
+        street: document.getElementById('street').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        postal_code: document.getElementById('postal_code').value
+    };
+
+    fetch(`/admin/doctors/addresses/${addressId}/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(data)
+   
+        
+        
+    })
+    .then(response => response.json()
+    )
+    .then(result => {
+        if (result.error) {
+            throw new Error(result.error);
+        }
+        mostrarToastGlobal({
+            type: 'success',
+            message: 'Consultorio actualizado exitosamente'
+        });
+        loadDoctorData();
+        closeToast();
+    })
+    .catch(error => {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: error.message || 'Error al actualizar el consultorio'
+        });
+    });
+   
+    
+}
+
+
+function addTimeSlot() {
+    const container = document.getElementById('times-container');
+    const newRow = document.createElement('div');
+    newRow.className = 'row mb-2';
+    newRow.innerHTML = `
+        <div class="col-5">
+            <input type="time" class="form-control start-time">
+        </div>
+        <div class="col-5">
+            <input type="time" class="form-control end-time">
+        </div>
+        <div class="col-2">
+            <button class="btn btn-danger btn-sm" onclick="removeTimeSlot(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(newRow);
+}
+
+function removeTimeSlot(button) {
+    button.closest('.row').remove();
+}
+    function updateStatus(appointmentId, newStatus) {
+        closeToast();
+
+        fetch(`/admin/appointments/${appointmentId}/status/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+            .then(response => {
+                if (!response.ok) throw new Error('Error al actualizar el estado');
+                return response.json();
+            })
+            .then(() => {
+            
+                mostrarToastGlobal({
+                    type: 'success',
+                    message: 'Estado actualizado exitosamente',
+                    duration: 1500 
+                });
+
+               
+                const userId = sessionStorage.getItem('user_id');
+                fetch(`/admin/patients/${userId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const table = $('#appointmentsTable').DataTable();
+                        const currentPage = table.page();
+                        const currentSearch = table.search();
+                        table.clear().rows.add(data.appointments).draw();
+                        table.page(currentPage).search(currentSearch).draw('page');
+                    });
+            })
+            .catch(error => {
+                mostrarToastGlobal({
+                    type: 'danger',
+                    message: error.message || 'Error al actualizar el estado',
+                    duration: 2000
+                });
+            });
+    }
+    function changeStatus(appointmentId) {
+        const statuses = [
+            { value: 1, label: 'Pendiente', class: 'bg-warning text-dark' },
+            { value: 2, label: 'Confirmada', class: 'bg-info text-white' },
+            { value: 3, label: 'Cancelada', class: 'bg-danger text-white' },
+            { value: 4, label: 'Completada', class: 'bg-success text-white' }
+        ];
+
+        mostrarToastGlobal({
+            type: '',
+            message: `
+            <div class="list-group">
+                ${statuses.map(status => `
+                    <button class="list-group-item list-group-item-action d-flex align-items-center" 
+                            onclick="updateStatus(${appointmentId}, ${status.value});closeToast();">
+                        <span class="badge ${status.class} me-2">${status.label}</span>
+                        ${status.label}
+                    </button>
+                `).join('')}
+            </div>
+            <div class="d-flex justify-content-end mt-2">
+                <button class="button-edit" onclick="closeToast()">Cancelar</button>
+            </div>`
+        },);
+    }
+
+
+function updateSchedule(doctorId, weekday) {
+    const times = [];
+    const startTimes = document.querySelectorAll('.start-time');
+    const endTimes = document.querySelectorAll('.end-time');
+    
+    for (let i = 0; i < startTimes.length; i++) {
+        if (startTimes[i].value && endTimes[i].value) {
+            times.push({
+                start_time: startTimes[i].value,
+                end_time: endTimes[i].value
+            });
+        }
+    }
+
+    const data = {
+        weekday: weekday,
+        consultation_time: document.getElementById('consultation_time').value,
+        times: times
+    };
+
+    fetch(`/admin/doctors/${doctorId}/schedules/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.error) {
+            throw new Error(result.error);
+        }
+        mostrarToastGlobal({
+            type: 'success',
+            message: 'Horario actualizado exitosamente'
+        });
+        loadDoctorData();
+        closeToast();
+    })
+    .catch(error => {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: error.message || 'Error al actualizar el horario'
+        });
+    });
+}
+
+function closeToast() {
+    const toastElement = document.querySelector('.toast');
+    if (toastElement) {
+        const bsToast = bootstrap.Toast.getInstance(toastElement);
+        if (bsToast) {
+            bsToast.hide();
+        }
+    }
+}
+
+
+</script>
+</body>
+</html>

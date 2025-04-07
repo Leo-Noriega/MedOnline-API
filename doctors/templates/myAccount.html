@@ -67,7 +67,7 @@
                 })
                 .then(data => {
                     callback(data);
-                    console.log(data)
+                   
                 })
                 .catch(error => {
                     console.error(error);
@@ -298,7 +298,7 @@
 
             fields.forEach(field => {
                 const value = document.getElementById(field)?.value;
-                console.log(`${field}: ${value}`);
+         
                 if (value) {
                     data[field] = value;
                 } else {
@@ -316,8 +316,7 @@
 
             delete data.confirm_password;
             const csrfToken = getCSRFToken();
-            console.log(data);
-
+          
             mostrarToastGlobal({
                 type: '',
                 message: '¿Está seguro de actualizar la información del doctor?',

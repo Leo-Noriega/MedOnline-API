@@ -1,0 +1,453 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Paciente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+
+    <style>
+              @media (min-width: 992px) {
+            main {
+                transition: margin-left 0.5s ease;
+            }
+
+            main.shifted {
+                margin-left: 200px;
+            }
+
+            .offcanvas {
+                padding: 20px;
+                top: 56px;
+            }
+        }
+
+        .link-hover.active {
+            border-left-color: rgba(30, 128, 145, 0.7);
+            background-color: rgba(29, 106, 111, 0.1);
+        }
+
+        .link-hover {
+            border-left: 4px solid transparent;
+            background-color: transparent;
+            transition: background-color 0.3s ease, border-left-color 0.3s ease;
+        }
+
+        .link-hover:hover {
+            border-left-color: rgba(30, 128, 145, 0.7);
+            background-color: rgba(29, 106, 111, 0.1);
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ccc;
+            display: inline-block;
+        }
+
+        .status-indicator.active {
+            background-color: #28a745;
+        }
+
+        .status-indicator.inactive {
+            background-color: #dc3545;
+        }
+
+        .btn-primary {
+            background-color: #4285f4;
+            border-color: #4285f4;
+        }
+
+        .btn-primary:hover {
+            background-color: #2E5077;
+            border-color: #2E5077;
+        }
+    </style>
+</head>
+
+<body>
+    {% csrf_token %}
+    {% include 'header.html' %}
+    
+    <div class="offcanvas offcanvas-start offcanvas-lg bg-light" data-bs-scroll="true" data-bs-backdrop="false"
+        tabindex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel" style="width: 200px; top: 56px;">
+        <div class="offcanvas-header justify-content-end">
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        {% include 'admin_sidebar.html' %}
+    </div>
+
+    <main class="p-3">
+        <div class="p-2">
+            <div class="d-flex align-items-center">
+                <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
+                    aria-controls="offcanvasScrolling"><i class="bi bi-list"></i></button>
+                <h4 class="text-title">Información del Paciente</h4>
+            </div>
+            <hr class="borde-hr" />
+        </div>
+
+        <div id="info-patient" class="rounded p-3 m-auto bg-section my-5">
+            
+        </div>
+
+         <div class="rounded p-3 m-auto bg-section my-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="mb-0">Historial de Citas</h5>
+        </div>
+        <div class="table-responsive">
+            <table id="appointmentsTable" class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Doctor</th>
+                        <th>Clínica</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Los datos se cargarán dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </main>
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="{% static 'js/toast_alerts.js' %}"></script>
+<script>
+   
+    function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+            document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                ?.split('=')[1];
+    }
+
+    function closeToast() {
+        const toastElement = document.querySelector('.toast');
+        if (toastElement) {
+            const bsToast = bootstrap.Toast.getInstance(toastElement);
+            if (bsToast) {
+                bsToast.dispose();
+            }
+        }
+    }
+
+    function createField(label, value) {
+        return `<div class="col-md-4 col-sm-6 col-12">
+            <p class="text-title fw-semibold mb-0">${label}:</p>
+            <p>${value || ''}</p>
+        </div>`;
+    }
+
+    function createInputField(label, value, id, type = "text") {
+        return `<div class="col-md-4 col-sm-6 col-12 my-2">
+            <label class="text-title fw-semibold mb-0">${label}:</label>
+            <input id="${id}" class="form-control" type="${type}" value="${value || ''}" />
+            <div class="invalid-feedback"></div>
+        </div>`;
+    }
+
+
+    function renderPatientData(data) {
+        const mainContainer = document.getElementById('info-patient');
+        mainContainer.innerHTML = `
+            <div class="d-flex justify-content-between mb-3">
+                <div class="d-flex align-items-center">
+                    <img src="${data.patient.photo || '/static/img/default.png'}" 
+                         class="rounded-circle" alt="foto de perfil" 
+                         style="height: 50px; width: 50px;">
+                    <h5 class="mb-0 ms-3">${data.patient.name} ${data.patient.surnames}</h5>
+                </div>
+                <button class="button-edit" onclick="editPatient('${data.patient.id}')">
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+            </div>
+            <div class="text row">
+                ${createField("Nombre", data.patient.name)}
+                ${createField("Apellidos", data.patient.surnames)}
+                ${createField("Usuario", data.patient.username)}
+                ${createField("Teléfono", data.patient.phone)}
+                ${createField("Correo electrónico", data.patient.email)}
+                ${createField("Estado", `<span class="badge ${data.patient.status ? 'bg-success' : 'bg-danger'}">${data.patient.status ? 'Activo' : 'Inactivo'}</span>`)}
+            </div>`;
+    }
+
+    function renderEditForm(data) {
+        const mainContainer = document.getElementById('info-patient');
+        mainContainer.innerHTML = `
+            <div class="d-flex justify-content-start mb-3 align-items-center">
+                <img src="${data.patient.photo || '/static/img/default.png'}" 
+                     class="rounded-circle me-3" alt="foto de perfil" 
+                     style="height: 50px; width: 50px;">
+                <button class="button-edit" onclick="document.getElementById('photo-input').click()">
+                    <i class="bi bi-camera"></i> Cambiar foto
+                </button>
+                <input type="file" id="photo-input" style="display: none;">
+            </div>
+            <div class="text row">
+                ${createInputField("Nombre", data.patient.name, "name")}
+                ${createInputField("Apellidos", data.patient.surnames, "surnames")}
+                ${createInputField("Usuario", data.patient.username, "username")}
+                ${createInputField("Teléfono", data.patient.phone, "phone")}
+                ${createInputField("Correo electrónico", data.patient.email, "email")}
+                <div class="col-md-4 col-sm-6 col-12 my-2">
+                    <label class="text-title fw-semibold mb-0">Estado:</label>
+                    <select id="status" class="form-select">
+                        <option value="1" ${data.patient.status ? 'selected' : ''}>Activo</option>
+                        <option value="0" ${!data.patient.status ? 'selected' : ''}>Inactivo</option>
+                    </select>
+                </div>
+                <div class="col-12 d-flex justify-content-end mt-3">
+                    <button class="button-edit mx-2" onclick="loadPatientData('${data.patient.id}')">
+                        Cancelar
+                    </button>
+                    <button class="button-principal" onclick="updatePatient('${data.patient.id}')">
+                        Guardar cambios
+                    </button>
+                </div>
+            </div>`;
+    }
+
+
+        function initializeAppointmentsTable(appointments) {
+            const table = $('#appointmentsTable').DataTable({
+                data: appointments,
+                destroy: true,
+                columns: [
+                    {
+                        data: 'date',
+                        render: function (data) {
+                            return new Date(data).toLocaleString('es-ES', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            });
+                        }
+                    },
+                    {
+                        data: 'doctor',
+                        render: function (data) {
+                            return `<span class="fw-semibold">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'clinic',
+                        render: function (data) {
+                            return `<span class="text-muted">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: 'status',
+                        render: function (data) {
+                            const statusClasses = {
+                                'Pending': 'bg-warning text-dark',
+                                'Confirmed': 'bg-info text-white',
+                                'Cancelled': 'bg-danger text-white',
+                                'Completed': 'bg-success text-white'
+                            };
+                            const statusClass = statusClasses[data] || 'bg-secondary';
+                            return `<span class="badge ${statusClass}">${data}</span>`;
+                        }
+                    },
+                    {
+                        data: null,
+                        render: function (data) {
+                            const isCompleted = data.status === 'Completed';
+                            return `
+                            <button class="button-edit" onclick="changeStatus(${data.id}, '${data.status}')">
+                                <i class="bi bi-pencil-square"></i> 
+                                Cambiar estado
+                            </button>`;
+                        }
+                    }
+                ],
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.10.24/i18n/Spanish.json"
+                },
+                order: [[0, 'desc']],
+                responsive: true,
+                pageLength: 5,
+                dom: '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center"ip>',
+                lengthMenu: [[5, 10, 25, 50], [5, 10, 25, 50]]
+            });
+
+            return table;
+        }
+
+ 
+    function editPatient(patientId) {
+        fetch(`/admin/patients/${patientId}/`)
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar datos del paciente');
+                return response.json();
+            })
+            .then(data => {
+                renderEditForm(data);
+            })
+            .catch(error => {
+                mostrarToastGlobal({
+                    type: 'danger',
+                    message: error.message,
+                    duration: 2000
+                });
+            });
+    }
+
+    function updatePatient(patientId) {
+        const data = {};
+        const fields = ["name", "surnames", "username", "phone", "email"];
+
+        fields.forEach(field => {
+            const value = document.getElementById(field)?.value;
+            if (value) data[field] = value;
+        });
+        
+        const statusSelect = document.getElementById('status');
+        data.status = statusSelect.value === "1";
+
+        fetch(`/admin/patients/update/${patientId}/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.error) {
+                throw new Error(result.error);
+            }
+            mostrarToastGlobal({
+                type: 'success',
+                message: 'Información actualizada exitosamente',
+                duration: 1500
+            });
+            loadPatientData(patientId);
+        })
+        .catch(error => {
+            mostrarToastGlobal({
+                type: 'danger',
+                message: error.message || 'Error al actualizar la información',
+                duration: 2000
+            });
+        });
+    }
+
+      function loadPatientData(userId) {
+        const mainContainer = document.getElementById('info-patient');
+        mainContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+
+        fetch(`/admin/patients/${userId}/`)
+            .then(response => {
+                if (!response.ok) throw new Error('Error al cargar datos del paciente');
+                return response.json();
+            })
+            .then(data => {
+                renderPatientData(data);
+                initializeAppointmentsTable(data.appointments);
+            })
+            .catch(error => {
+                mainContainer.innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        ${error.message}
+                    </div>`;
+            });
+    }
+
+function updateStatus(appointmentId, newStatus) {
+    closeToast();
+
+    fetch(`/admin/appointments/${appointmentId}/status/`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Error al actualizar el estado');
+        return response.json();
+    })
+    .then(() => {
+       
+        mostrarToastGlobal({
+            type: 'success',
+            message: 'Estado actualizado exitosamente',
+            duration: 1500 
+        });
+
+        const userId = sessionStorage.getItem('user_id');
+        fetch(`/admin/patients/${userId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const table = $('#appointmentsTable').DataTable();
+                const currentPage = table.page();
+                const currentSearch = table.search();
+                table.clear().rows.add(data.appointments).draw();
+                table.page(currentPage).search(currentSearch).draw('page');
+            });
+    })
+    .catch(error => {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: error.message || 'Error al actualizar el estado',
+            duration: 2000 
+        });
+    });
+}
+function changeStatus(appointmentId) {
+    const statuses = [
+        { value: 1, label: 'Pendiente', class: 'bg-warning text-dark' },
+        { value: 2, label: 'Confirmada', class: 'bg-info text-white' },
+        { value: 3, label: 'Cancelada', class: 'bg-danger text-white' },
+        { value: 4, label: 'Completada', class: 'bg-success text-white' }
+    ];
+
+    mostrarToastGlobal({
+        type: '',
+        message: `
+            <div class="list-group">
+                ${statuses.map(status => `
+                    <button class="list-group-item list-group-item-action d-flex align-items-center" 
+                            onclick="updateStatus(${appointmentId}, ${status.value});closeToast();">
+                        <span class="badge ${status.class} me-2">${status.label}</span>
+                        ${status.label}
+                    </button>
+                `).join('')}
+            </div>
+            <div class="d-flex justify-content-end mt-2">
+                <button class="button-edit" onclick="closeToast()">Cancelar</button>
+            </div>`
+    },);
+}
+
+   
+    document.addEventListener('DOMContentLoaded', function() {
+        const userId = sessionStorage.getItem('user_id');
+        if (!userId) {
+            window.location.href = '/admin/inicio/';
+            return;
+        }
+        loadPatientData(userId);
+    });
+</script>
+</body>
+</html>

@@ -24,12 +24,11 @@ urlpatterns = [
     path('', index, name='landing'),
     path('registro/', register, name='registro'),
     path('quienes-somos/', about_us, name='quienes-somos'),
-    path('admin/', admin.site.urls),
     path('especialista/', include('doctors.urls')),
     path('schedule/', include('schedule.urls')),
     path('reviews/', include('reviews.urls')),
     path('users/', include('users.urls')),
     path('appointments/', include('appointments.urls')),
     path('email/', include('mails.urls')),
-    path('api/admin/', include('custom_admin.urls')),
+    path('admin/', include('custom_admin.urls')),
 ]
