@@ -88,6 +88,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=60, blank=True)
     surnames = models.CharField(max_length=80, blank=True)
     email = models.EmailField(unique=True)
+    token = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=16, blank=True)
     username = models.CharField(max_length=45, blank=True)
     photo= models.ImageField(upload_to="user", default="default.png")
