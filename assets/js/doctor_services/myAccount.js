@@ -1,5 +1,3 @@
-
-
 let doctor_id = null;
 function fetchDoctorData(callback) {
     const userId = document.getElementById('info-user').dataset.userId;
@@ -14,7 +12,7 @@ function fetchDoctorData(callback) {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         }
     })
         .then(response => {
@@ -125,6 +123,8 @@ function agregar_especialidad() {
 
 function renderEditForm(data) {
     const mainContainer = document.getElementById('info-user');
+    const userId = mainContainer.dataset.userId; // Obtén el user_id del atributo data-user-id
+
     mainContainer.innerHTML = `
     <div class="d-flex justify-content-start mb-3 align-items-center">
         <img src="{% static 'media/default.png' %}" class="rounded-circle" alt="foto de perfil" style="height: 50px; width: 50px;">
@@ -142,7 +142,7 @@ function renderEditForm(data) {
         ${createInputField("Confirmación de contraseña", "", "confirm_password", "password")}
         <div class="col-12 d-flex justify-content-end my-2">
             <button class="button-edit mx-3 fw-medium" onclick="fetchDoctorData(renderUserInfo)">Cancelar</button>
-            <button type="submit" class="button-principal fw-medium" onclick="updateDoctor({{user_id}})">Guardar</button>
+            <button type="submit" class="button-principal fw-medium" onclick="updateDoctor(${userId})">Guardar</button>
         </div>
     </div>`;
     validaciones();
@@ -307,7 +307,7 @@ function updateDoctor(userId) {
                         headers: {
                             "Content-Type": "application/json",
                             "X-CSRFToken": csrfToken,
-                            "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+                            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
                         },
                         body: JSON.stringify(data)
                     })
@@ -384,7 +384,7 @@ function guardarEspecialidad() {
                         headers: {
                             "Content-Type": "application/json",
                             "X-CSRFToken": csrfToken,
-                            "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+                            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
                         },
                         body: JSON.stringify(data)
                     })

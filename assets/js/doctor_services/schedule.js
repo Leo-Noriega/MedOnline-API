@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             headers: {
                                 'Content-Type': 'application/json',
                                 'X-CSRFToken': getCSRFToken(),
-                                "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+                                "Authorization": `Bearer ${localStorage.getItem("access_token")}`
                             },
                             body: JSON.stringify(updatedSchedule)
                         })
@@ -343,7 +343,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                         method: 'DELETE',
                                         headers: {
                                             'X-CSRFToken': getCSRFToken(),
-                                            "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+                                            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
                                         }
                                     })
                                         .then(response => {
@@ -424,7 +424,7 @@ function updateAppointmentStatus(appointmentId, newStatus, statusText) {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem("accessToken")}`
+            'Authorization': `Bearer ${localStorage.getItem("access_token")}`
         },
         body: JSON.stringify({ status: newStatus })
     })
@@ -444,7 +444,7 @@ function updateAppointmentStatus(appointmentId, newStatus, statusText) {
                 fetch(`/appointments/api/${appointmentId}/`, {
                     method: 'DELETE',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem("accessToken")}`
+                        'Authorization': `Bearer ${localStorage.getItem("access_token")}`
                     }
                 })
                     .then(response => {
