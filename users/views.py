@@ -6,6 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework.renderers import JSONRenderer
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
 
 from .forms import CustomLoginForm
 from .serializers import *
@@ -20,7 +24,7 @@ class UserViewSets(viewsets.ModelViewSet):
     authentication_classes = [JWTAuthentication]
     
     def get_permissions(self):
-        if self.request.method in ['POST', 'PUT', 'DELETE']:
+        if self.request.method in ['POST', 'DELETE']:
             return [IsAuthenticated()]
         return []
 
@@ -34,7 +38,7 @@ class CustomLoginView(LoginView):
         if user.role.name == 'Doctor':
             return redirect('inicio')
         elif user.role.name== 'Patient':
-            return redirect('/')
+            return redirect('account_patient')
         elif user.role.name == 'Admin':
             return redirect('/')
         else:
@@ -46,3 +50,12 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 def cerrar_sesion(request):
     logout(request)
     return redirect('/')
+
+class UserUpdateView(APIView):
+    def put(self, request, user_id):
+        user = User.objects.get(id=user_id)
+        serializer = CustomUserSerializer(user, data=request.data, partial=True)  # Permitir actualizaciones parciales
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

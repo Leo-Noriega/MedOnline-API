@@ -17,5 +17,6 @@ urlpatterns = [
     path('details/<int:user_id>/', user_doctor_details, name='user_doctor_details'),
     path('editar-doctor/<int:user_id>/',edit_user_doctor,name='editar_doctor'),
     path('asociar-especialidad/',associate_specialty,name='asociar'),
-    path('<int:doctor_id>/reviews/', get_doctor_reviews,name='reviews_doctor')
+    path('<int:doctor_id>/reviews/', get_doctor_reviews,name='reviews_doctor'),
+    path('mi-agenda/',agenda,name='agenda'),
 ]

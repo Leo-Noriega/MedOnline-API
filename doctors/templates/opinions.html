@@ -20,72 +20,17 @@
     <main class="p-3">
         <div class="p-2">
             <div class="d-flex align-items-center">
-                <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling"
-                    aria-controls="offcanvasScrolling"><i class="bi bi-list"></i></button>
                 <h4 class="text-title">Opiniones de mis pacientes</h4>
             </div>
             <hr class="borde-hr" />
         </div>
-        <div class="container p-3 rounded bg-section" id="opiniones" data-url="/especialista/1/reviews/">
+        <div class="container p-3 rounded bg-section" id="opiniones" data-url="/especialista/{{doctor_id}}/reviews/">
         </div>
     </main>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/sidebar.js' %}"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const opinionesContainer = document.getElementById("opiniones");
-            const url = opinionesContainer.dataset.url;
-
-            async function cargarOpiniones() {
-                try {
-                    const response = await fetch(url, { method: "GET", headers: { "Content-Type": "application/json" } });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
-                    }
-
-                    const opiniones = await response.json();
-                    renderizarOpiniones(opiniones);
-                } catch (error) {
-                    console.error("Error al cargar las opiniones:", error);
-                    opinionesContainer.innerHTML = "<p class='text-center text-danger'>Error al cargar las opiniones.</p>";
-                }
-            }
-
-            function renderizarOpiniones(opiniones) {
-                if (opiniones.length === 0) {
-                    opinionesContainer.innerHTML = "<p class='text-center'>No hay opiniones disponibles.</p>";
-                    return;
-                }
-
-                opinionesContainer.innerHTML = opiniones.map(opinion => `
-                    <div class="rounded shadow-sm bg-primary-color w-100 mb-3 text p-3">
-                        <div class="card-body">
-                            <div class="justify-content-between d-flex row">
-                                <div class="d-flex align-items-center mb-3 col-12 col-md-8">
-                                    <img src="${opinion.user.photo}" 
-                                        alt="Foto de ${opinion.user.name}" 
-                                        class="rounded-circle me-3" 
-                                        style="width: 50px; height: 50px;">
-                                    <div>
-                                        <h6 class="text-principal fw-medium mb-0">${opinion.user.name} ${opinion.user.surnames}</h6>
-                                        <small class="text-muted">${new Date(opinion.review_date).toLocaleDateString("es-ES")}</small>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-md-4 text-start text-md-end">
-                                    <p class="mb-0">${'<i class="bi bi-star-fill text-warning px-1"></i>'.repeat(opinion.rating)}</p>
-                                </div>
-                            </div>
-                            <p class="card-text">${opinion.comment}</p>
-                        </div>
-                    </div>
-                `).join("");
-            }
-
-            cargarOpiniones();
-        });
-    </script>
+    <script src="{% static 'js/doctor_services/opinions.js' %}"></script>
 
 </body>
 
