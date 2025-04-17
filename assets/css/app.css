@@ -14,9 +14,11 @@
 
 body {
     font-family: 'DM Sans', sans-serif !important;
-    background-color: var(--fondo);
+    background-color: var(--fondo) !important;
 }
-
+.toast {
+    z-index: 9999;
+}
 .logo{
     height: 40px;
 }
@@ -43,6 +45,7 @@ body {
 }
 .bg-section{
     background-color: var(--fondo-secciones);
+    box-shadow:  0px 0px 10px rgba(0, 0, 0, 0.1);
 }
 .borde-hr{
     border: none; 
@@ -106,6 +109,22 @@ a{
       animation: pulse 0.5s;
       box-shadow: 0 0 0 2em transparent;
   }
+
+@keyframes slideUpAnimation {
+    from {
+        transform: translateY(100px); /* Comienza 100px más abajo */
+        opacity: 0; /* Comienza invisible */
+    }
+    to {
+        transform: translateY(0); /* Termina en su posición original */
+        opacity: 1; /* Termina completamente visible */
+    }
+}
+
+main{
+    animation: slideUpAnimation 0.5s ease-in-out;
+}
+
 /*sidebar*/
 @media (min-width: 992px) {
     main {
@@ -140,3 +159,4 @@ background-color: rgba(29, 106, 111, 0.1);
 input::placeholder {
     color: #cacaca !important;
 }
+

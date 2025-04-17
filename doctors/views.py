@@ -1,13 +1,15 @@
 from rest_framework.renderers import JSONRenderer
 from rest_framework import viewsets
 import json
+from datetime import timedelta
 from .models import *
 from .serializers import *
 from users.models import CustomUser
 from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
+from django.utils.datastructures import MultiValueDictKeyError
 from django.contrib.auth.decorators import login_required
 from .models import Doctor, Address, DoctorSpecialty
 from django.core.exceptions import ObjectDoesNotExist
@@ -101,7 +103,7 @@ def user_doctor_details(request,user_id):
                 "phone": doctor.user.phone,
                 "photo": photo_url,
                 "email": doctor.user.email,
-                "years_experience": doctor.years_experience,
+                "consultation_time": str(doctor.consultation_time) if doctor.consultation_time else None,  # Convertir a HH:MM:SS
                 "consultation_fee": doctor.consultation_fee,
             },
             "addresses": addresses_data,
@@ -112,37 +114,47 @@ def user_doctor_details(request,user_id):
         return JsonResponse({"error":"Datos no encontrados para este usuario"}, status=404)
 
 @login_required
-@require_http_methods(["PUT"])
+@require_http_methods(["POST"])  # Cambiado de PUT a POST
 def edit_user_doctor(request, user_id):
     try:
-        user=CustomUser.objects.get(id=user_id)
-        doctor= Doctor.objects.get(user=user)
-        print ("cuerpo de la solicitud", request.body)
-        data= json.loads(request.body)
-        print("Datos recibidos:",data)
-        user.name = data.get('name', user.name)if 'name' in data else user.name
-        user.surnames = data.get('surnames', user.surnames) if 'surnames' in data else user.surnames
-        user.email = data.get('email', user.email)if 'email' in data else user.email
-        user.phone=data.get('phone', user.phone)if 'phone' in data else user.phone
+        # Django maneja automáticamente request.POST y request.FILES en solicitudes POST
+        data = request.POST
+        files = request.FILES
 
-        if 'photo' in request.FILES:
-            user.photo= request.FILES['photo']
+        print("POST data:", data)
+        print("FILES data:", files)
 
-        if 'password' in data:
-            user.password= make_password(data['password'])
+        user = CustomUser.objects.get(id=user_id)
+        doctor = Doctor.objects.get(user=user)
+
+        # Actualizar datos del usuario
+        user.name = data.get('name', user.name)
+        user.surnames = data.get('surnames', user.surnames)
+        user.email = data.get('email', user.email)
+        user.phone = data.get('phone', user.phone)
+
+        # Manejar la subida de la imagen
+        if 'photo' in files:
+            user.photo = files['photo']
+
+        # Manejar la contraseña
+        if 'password' in data and data['password']:
+            user.set_password(data['password'])
+
         user.save()
-        print("Datos antes de guardar:", user.__dict__)
-        user.save()
-        print("Datos después de guardar:", user.__dict__)
-        doctor.consultation_fee = data.get('consultation_fee', doctor.consultation_fee)  # Actualiza solo si el dato existe
-        doctor.years_experience = data.get('years_experience', doctor.years_experience) if 'years_experience' in data else doctor.years_experience
-        doctor.save()
+        print("Usuario actualizado:", user)
 
-        print("Datos del doctor antes de guardar:", doctor.__dict__)
-        doctor.save()
-        print("Datos del doctor después de guardar:", doctor.__dict__)
+        # Actualizar datos del doctor
+        doctor.consultation_fee = data.get('consultation_fee', doctor.consultation_fee)
+        if 'consultation_time' in data:
+            try:
+                hours, minutes, seconds = map(int, data['consultation_time'].split(':'))
+                doctor.consultation_time = timedelta(hours=hours, minutes=minutes, seconds=seconds)
+            except ValueError:
+                return JsonResponse({"error": "El formato de consultation_time es inválido. Debe ser HH:MM:SS."}, status=400)
 
-      
+        doctor.save()
+        print("Doctor actualizado:", doctor)
 
         return JsonResponse({
             "message": "Información actualizada exitosamente",
@@ -154,19 +166,17 @@ def edit_user_doctor(request, user_id):
                 "photo": user.photo.url if user.photo else None
             },
             "doctor": {
-                "years_experience": doctor.years_experience,
+                "consultation_time": str(doctor.consultation_time) if doctor.consultation_time else None,
                 "consultation_fee": doctor.consultation_fee
             }
         })
- 
-    except Exception as e:
-        print(f"Error al guardar el usuario: {str(e)}")
-        return JsonResponse({"error": "No se pudo guardar el usuario"}, status=500)
+
     except CustomUser.DoesNotExist:
         return JsonResponse({"error": "Usuario no encontrado"}, status=404)
     except Doctor.DoesNotExist:
         return JsonResponse({"error": "Médico no encontrado"}, status=404)
     except Exception as e:
+        print(f"Error al guardar el usuario: {str(e)}")
         return JsonResponse({"error": f"Error inesperado: {str(e)}"}, status=500)
 
 @login_required
@@ -232,15 +242,34 @@ def my_account(request):
     
 @login_required
 def opinions(request):
-    user_id = request.session.get('_auth_user_id')
+    doctor_id = request.user.doctor.id
+    try:
+        Doctor.objects.get(id=doctor_id) 
+    except Doctor.DoesNotExist:
+        return JsonResponse({"error": "Doctor no encontrado"}, status=404)
+    
     if request.user.role.name not in ['Doctor', 'Administrador']:
         return redirect('login')
     else:
-        return render(request,'opinions.html',{'user_id':user_id}, status=200)
-
+        return render(request, 'opinions.html', {'doctor_id': doctor_id}, status=200)
+@login_required
 def medicalOffice(request):
     user_id = request.session.get('_auth_user_id')
     if request.user.role.name not in ['Doctor', 'Administrador']:
         return redirect('login')
     else:
         return render(request,'medicalOffice.html',{'user_id':user_id} ,status=200)
+
+
+@login_required
+def agenda(request):
+    doctor_id = request.user.doctor.id
+    doctor_time = request.user.doctor.consultation_time
+    try:
+        Doctor.objects.get(id=doctor_id)
+    except Doctor.DoesNotExist:
+        return JsonResponse({"error": "Doctor no encontrado"}, status=404)
+    if request.user.role.name not in ['Doctor', 'Administrador']:
+        return redirect('login')
+    else:
+        return render(request, 'schedule.html', {'doctor_id': doctor_id, 'doctor_time':doctor_time}, status=200)

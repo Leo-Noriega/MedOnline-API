@@ -21,19 +21,16 @@ document.addEventListener("DOMContentLoaded", function () {
         link.parentElement.classList.add("active"); 
     }
 
+    const currentUrl = window.location.href;
+    links.forEach(link => {
+        if (currentUrl === link.href) {
+            setActiveLink(link);
+        }
+    });
+
     links.forEach(link => {
         link.addEventListener("click", function () {
             setActiveLink(this);
-            localStorage.setItem("activeLink", this.href); 
         });
     });
-
-    const activeLink = localStorage.getItem("activeLink");
-    if (activeLink) {
-        links.forEach(link => {
-            if (link.href === activeLink) {
-                setActiveLink(link);
-            }
-        });
-    }
 });

@@ -18,7 +18,10 @@ from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
-
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
 from .forms import CustomLoginForm
 from .models import CustomUser
 from .serializers import CustomUserSerializer, CustomTokenObtainPairSerializer
@@ -254,3 +257,13 @@ def reset_password(request):
 
             return JsonResponse({"message": "Contraseña restablecida exitosamente."})
         return JsonResponse({"error": "Token inválido"}, status=400)
+    
+
+class UserUpdateView(APIView):
+    def put(self, request, user_id):
+        user = User.objects.get(id=user_id)
+        serializer = CustomUserSerializer(user, data=request.data, partial=True) 
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

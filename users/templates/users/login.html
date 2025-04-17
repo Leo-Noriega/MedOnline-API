@@ -45,9 +45,10 @@
     <div class="mt-5 text-center">
         <span>¿Todavía no tienes cuenta? <a href="{% url 'registro' %}" class="text-decoration-none text-second">Quiero registrarme</a></span>
     </div>
+    </div>
 </div>
-{% include '_footer.html' %}
-<script>
+   {% include '_footer.html' %}
+    <script>
     document.getElementById('loginForm').addEventListener('submit', async function (event) {
         event.preventDefault();
         const form = event.target;
@@ -71,7 +72,6 @@
             } else {
                 throw new Error('Response is not JSON');
             }
-
             if (response.ok) {
                 localStorage.setItem('access_token', data.access_token);
                 localStorage.setItem('refresh_token', data.refresh_token);
@@ -84,7 +84,6 @@
             displayError('Ocurrió un error con servidor, por favor intenta de nuevo.');
         }
     });
-
     function displayError(message) {
         const form = document.getElementById('loginForm');
         let errorDiv = form.querySelector('.alert-danger');
