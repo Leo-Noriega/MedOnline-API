@@ -41,7 +41,7 @@ function renderUserInfo(data) {
     mainContainer.innerHTML = "";
     const userCard = `
 <div class="d-flex justify-content-between mb-3">
-    <img src="{% static 'media/default.png' %}" class="rounded-circle" alt="foto de perfil" style="height: 50px; width: 50px;">
+    <img src="${data.doctor.photo || '/media/user/default.png'}" class="rounded-circle" alt="foto de perfil" style="height: 50px; width: 50px;">
     <button class="button-edit" onclick='editDoctor()'>Editar</button>
 </div>
 <div class="text row">
@@ -123,12 +123,12 @@ function agregar_especialidad() {
 
 function renderEditForm(data) {
     const mainContainer = document.getElementById('info-user');
-    const userId = mainContainer.dataset.userId; // Obtén el user_id del atributo data-user-id
+    const userId = mainContainer.dataset.userId;
 
     mainContainer.innerHTML = `
     <div class="d-flex justify-content-start mb-3 align-items-center">
-        <img src="{% static 'media/default.png' %}" class="rounded-circle" alt="foto de perfil" style="height: 50px; width: 50px;">
-        <input type="file" id="photo-input" style="display: none;">
+        <img id="photo-preview" src="${data.doctor.photo || '/media/user/default.png'}" class="rounded-circle" alt="foto de perfil" style="height: 50px; width: 50px;">
+        <input type="file" id="photo-input" style="display: none;" accept="image/*">
         <button class="button-edit" onclick="document.getElementById('photo-input').click()">Cambiar foto</button>
     </div>
     <div class="text row">
@@ -145,6 +145,25 @@ function renderEditForm(data) {
             <button type="submit" class="button-principal fw-medium" onclick="updateDoctor(${userId})">Guardar</button>
         </div>
     </div>`;
+    
+    const photoInput = document.getElementById('photo-input');
+    const photoPreview = document.getElementById('photo-preview');
+    photoInput.addEventListener('change', () => {
+        const file = photoInput.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                photoPreview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            mostrarToastGlobal({        
+                type: 'danger',
+                message: 'El archivo seleccionado no es una imagen válida.'
+            });
+        }
+    });
+
     validaciones();
 }
 
@@ -268,71 +287,16 @@ function cancelarEspecialidad() {
 }
 
 function updateDoctor(userId) {
-    const data = {};
-    const fields = ["name", "surnames", "phone", "email", "consultation_fee", "consultation_time","password", "confirm_password"];
-
-    fields.forEach(field => {
-        const value = document.getElementById(field)?.value;
-        console.log(`${field}: ${value}`);
-        if (value) {
-            data[field] = value;
-        } else {
-            console.error(`No se encontró el campo con Id:${field}`);
-        }
-    });
-
-    if (data.password && data.password !== data.confirm_password) {
-        mostrarToastGlobal({
-            type: 'danger',
-            message: 'Las contraseñas no coinciden.'
-        });
-        return;
-    }
-
-    delete data.confirm_password;
-    const csrfToken = getCSRFToken();
-    console.log(data);
-
     mostrarToastGlobal({
         type: '',
-        message: '¿Está seguro de actualizar la información del doctor?',
+        message: '¿Está seguro que desea actualizar la información del doctor?',
         buttons: [
             {
                 id: 'confirmar',
                 label: 'Confirmar',
                 className: 'button-principal',
                 onClick: () => {
-                    fetch(`/especialista/editar-doctor/${userId}/`, {
-                        method: "PUT",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": csrfToken,
-                            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-                        },
-                        body: JSON.stringify(data)
-                    })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.error) {
-                                mostrarToastGlobal({
-                                    type: 'danger',
-                                    message: `Error: ${result.error}`
-                                });
-                            } else {
-                                mostrarToastGlobal({
-                                    type: 'success',
-                                    message: 'Datos actualizados correctamente.'
-                                });
-                                fetchDoctorData(renderUserInfo);
-                            }
-                        })
-                        .catch(error => {
-                            console.error("Error en la actualización:", error);
-                            mostrarToastGlobal({
-                                type: 'danger',
-                                message: 'Ocurrió un error al actualizar la información.'
-                            });
-                        });
+                    realizarActualizacion(userId);
                 }
             },
             {
@@ -342,12 +306,89 @@ function updateDoctor(userId) {
                 onClick: () => {
                     mostrarToastGlobal({
                         type: '',
-                        message: 'Actualización cancelada por el usuario.'
+                        message: 'Acción cancelada por el usuario'
                     });
                 }
             }
         ]
     });
+}
+
+function realizarActualizacion(userId) {
+    const data = new FormData();
+    const fields = ["name", "surnames", "phone", "email", "consultation_fee", "consultation_time", "password", "confirm_password"];
+
+    fields.forEach(field => {
+        const value = document.getElementById(field)?.value;
+        if (value) {
+            data.append(field, value);
+        }
+    });
+
+    if (data.get("password") && data.get("password") !== data.get("confirm_password")) {
+        mostrarToastGlobal({
+            type: 'danger',
+            message: 'Las contraseñas no coinciden.'
+        });
+        return;
+    }
+    data.delete("confirm_password");
+
+    const photoInput = document.getElementById('photo-input');
+    if (photoInput.files.length > 0) {
+        const file = photoInput.files[0];
+        if (file.type.startsWith('image/')) {
+            data.append('photo', file);
+        } else {
+            mostrarToastGlobal({
+                type: 'danger',
+                message: 'El archivo seleccionado no es una imagen válida.'
+            });
+            return;
+        }
+    }
+
+    for (let pair of data.entries()) {
+        console.log(pair[0] + ':', pair[1]);
+    }
+
+    const csrfToken = getCSRFToken();
+
+    fetch(`/especialista/editar-doctor/${userId}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrfToken,
+            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+        },
+        body: data
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la solicitud');
+            }
+            return response.json();
+        })
+        .then(result => {
+            if (result.error) {
+                mostrarToastGlobal({
+                    type: 'danger',
+                    message: `Error: ${result.error}`
+                });
+            } else {
+                mostrarToastGlobal({
+                    type: 'success',
+                    message: 'Datos actualizados correctamente.'
+                });
+                fetchDoctorData(renderUserInfo);
+            }
+        })
+        .catch(error => {
+            console.error("Error en la actualización:", error);
+            mostrarToastGlobal({
+                type: 'danger',
+                message: 'Ocurrió un error al actualizar la información.'
+            });
+        });
 }
 
 function guardarEspecialidad() {
@@ -364,7 +405,7 @@ function guardarEspecialidad() {
 
     mostrarToastGlobal({
         type: '',
-        message: '¿Está seguro de realizar esta acción?',
+        message: '¿Está seguro que deseas registrar esta especialidad? Asegúrate de que la información es correcta.',
         buttons: [
             {
                 id: 'confirmar',

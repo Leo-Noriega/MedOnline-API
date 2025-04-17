@@ -11,7 +11,6 @@ function getStatusText(status) {
 let calendar;
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Obtener los valores de doctor_id y doctor_time desde los atributos data-*
     const calendarElement = document.getElementById("calendar");
     const scheduleElement = document.getElementById("schedule");
     const doctorId = calendarElement.dataset.doctorId;
@@ -22,7 +21,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    // Inicializar el calendario
     calendar = new FullCalendar.Calendar(calendarElement, {
         initialView: 'timeGridWeek',
         initialDate: new Date(),
@@ -57,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         let backgroundColor;
                         switch (appointment.status) {
                             case 1: // Pendiente
-                                backgroundColor = '#f7dc6f';
+                                backgroundColor = '#FFC300';
                                 break;
                             case 2: // Confirmada
                                 backgroundColor = '#28a745';
@@ -207,7 +205,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const handleError = (message) => {
-        console.error(message);
         alert(message);
     };
 

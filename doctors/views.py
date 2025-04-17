@@ -8,7 +8,8 @@ from users.models import CustomUser
 from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
+from django.http import JsonResponse, QueryDict
+from django.utils.datastructures import MultiValueDictKeyError
 from django.contrib.auth.decorators import login_required
 from .models import Doctor, Address, DoctorSpecialty
 from django.core.exceptions import ObjectDoesNotExist
@@ -113,31 +114,38 @@ def user_doctor_details(request,user_id):
         return JsonResponse({"error":"Datos no encontrados para este usuario"}, status=404)
 
 @login_required
-@require_http_methods(["PUT"])
+@require_http_methods(["POST"])  # Cambiado de PUT a POST
 def edit_user_doctor(request, user_id):
     try:
+        # Django maneja automáticamente request.POST y request.FILES en solicitudes POST
+        data = request.POST
+        files = request.FILES
+
+        print("POST data:", data)
+        print("FILES data:", files)
+
         user = CustomUser.objects.get(id=user_id)
         doctor = Doctor.objects.get(user=user)
-        print("Cuerpo de la solicitud:", request.body)
-        data = json.loads(request.body)
-        print("Datos recibidos:", data)
+
+        # Actualizar datos del usuario
         user.name = data.get('name', user.name)
         user.surnames = data.get('surnames', user.surnames)
         user.email = data.get('email', user.email)
         user.phone = data.get('phone', user.phone)
 
-        if 'photo' in request.FILES:
-            user.photo = request.FILES['photo']
+        # Manejar la subida de la imagen
+        if 'photo' in files:
+            user.photo = files['photo']
 
-        if 'password' in data:
-            user.password = make_password(data['password'])
-        user.save()
-        print("Datos antes de guardar:", user.__dict__)
-        user.save()
-        print("Datos después de guardar:", user.__dict__)
+        # Manejar la contraseña
+        if 'password' in data and data['password']:
+            user.set_password(data['password'])
 
+        user.save()
+        print("Usuario actualizado:", user)
+
+        # Actualizar datos del doctor
         doctor.consultation_fee = data.get('consultation_fee', doctor.consultation_fee)
-
         if 'consultation_time' in data:
             try:
                 hours, minutes, seconds = map(int, data['consultation_time'].split(':'))
@@ -146,9 +154,7 @@ def edit_user_doctor(request, user_id):
                 return JsonResponse({"error": "El formato de consultation_time es inválido. Debe ser HH:MM:SS."}, status=400)
 
         doctor.save()
-        print("Datos del doctor antes de guardar:", doctor.__dict__)
-        doctor.save()
-        print("Datos del doctor después de guardar:", doctor.__dict__)
+        print("Doctor actualizado:", doctor)
 
         return JsonResponse({
             "message": "Información actualizada exitosamente",
@@ -160,18 +166,18 @@ def edit_user_doctor(request, user_id):
                 "photo": user.photo.url if user.photo else None
             },
             "doctor": {
-                "consultation_time": str(doctor.consultation_time),  
+                "consultation_time": str(doctor.consultation_time) if doctor.consultation_time else None,
                 "consultation_fee": doctor.consultation_fee
             }
         })
 
-    except Exception as e:
-        print(f"Error al guardar el usuario: {str(e)}")
-        return JsonResponse({"error": "No se pudo guardar el usuario"}, status=500)
     except CustomUser.DoesNotExist:
         return JsonResponse({"error": "Usuario no encontrado"}, status=404)
     except Doctor.DoesNotExist:
         return JsonResponse({"error": "Médico no encontrado"}, status=404)
+    except Exception as e:
+        print(f"Error al guardar el usuario: {str(e)}")
+        return JsonResponse({"error": f"Error inesperado: {str(e)}"}, status=500)
 
 @login_required
 @require_http_methods(['POST'])
