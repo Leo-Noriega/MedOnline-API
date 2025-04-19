@@ -75,13 +75,14 @@ class CustomLoginViewAPI(FormView):
             refresh = RefreshToken.for_user(user)
             access_token = str(refresh.access_token)
             refresh_token = str(refresh)
-
+            role = user.role.name if user.role else None
             redirect_url = get_redirect_url(user)
 
             return JsonResponse({
                 'access_token': access_token,
                 'refresh_token': refresh_token,
-                'redirect_url': redirect_url
+                'redirect_url': redirect_url,
+                'role': role,
             })
 
         return JsonResponse({'error': 'Credenciales incorrectas'}, status=401)
