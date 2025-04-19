@@ -7,15 +7,10 @@ from .serializers import *
 from users.models import CustomUser
 from django.shortcuts import render,redirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from django.http import JsonResponse, QueryDict
-from django.utils.datastructures import MultiValueDictKeyError
-from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from .models import Doctor, Address, DoctorSpecialty
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.hashers import make_password
-from rest_framework.permissions import IsAuthenticated
 from reviews.models import Review
 
 class DoctorViewSet(viewsets.ModelViewSet):
@@ -103,7 +98,7 @@ def user_doctor_details(request,user_id):
                 "phone": doctor.user.phone,
                 "photo": photo_url,
                 "email": doctor.user.email,
-                "consultation_time": str(doctor.consultation_time) if doctor.consultation_time else None,  # Convertir a HH:MM:SS
+                "consultation_time": str(doctor.consultation_time) if doctor.consultation_time else None,
                 "consultation_fee": doctor.consultation_fee,
             },
             "addresses": addresses_data,
@@ -114,10 +109,9 @@ def user_doctor_details(request,user_id):
         return JsonResponse({"error":"Datos no encontrados para este usuario"}, status=404)
 
 @login_required
-@require_http_methods(["POST"])  # Cambiado de PUT a POST
+@require_http_methods(["POST"])  
 def edit_user_doctor(request, user_id):
     try:
-        # Django maneja automáticamente request.POST y request.FILES en solicitudes POST
         data = request.POST
         files = request.FILES
 
@@ -127,24 +121,20 @@ def edit_user_doctor(request, user_id):
         user = CustomUser.objects.get(id=user_id)
         doctor = Doctor.objects.get(user=user)
 
-        # Actualizar datos del usuario
         user.name = data.get('name', user.name)
         user.surnames = data.get('surnames', user.surnames)
         user.email = data.get('email', user.email)
         user.phone = data.get('phone', user.phone)
 
-        # Manejar la subida de la imagen
         if 'photo' in files:
             user.photo = files['photo']
 
-        # Manejar la contraseña
         if 'password' in data and data['password']:
             user.set_password(data['password'])
 
         user.save()
         print("Usuario actualizado:", user)
 
-        # Actualizar datos del doctor
         doctor.consultation_fee = data.get('consultation_fee', doctor.consultation_fee)
         if 'consultation_time' in data:
             try:
@@ -223,7 +213,6 @@ def home(request):
     print("Usuario:", request.user)
     print("Sesión:", request.user.is_authenticated)
     print("info_sesion:", dict(request.session)) 
-    user_id = request.session.get('_auth_user_id')
     nombre = request.user.name
     apellidos = request.user.surnames
 

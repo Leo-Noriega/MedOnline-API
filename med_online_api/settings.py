@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "schedule",
     "doctors",
     "mails",
+    "patients",
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
