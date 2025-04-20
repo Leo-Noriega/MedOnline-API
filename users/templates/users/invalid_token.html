@@ -1,40 +1,31 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MedOnline - Token Inválido</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"></script>
-</head>
-<body class="d-flex flex-column min-vh-100">
-{% include '_navBar.html' %}
-<div class="container flex-grow-1 my-5">
-    <div class="text-center my-5">
-        <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px"/>
+{% extends 'layout/layout.html' %}
+{% load static %}
+
+{% block title %}
+  Token Inválido
+{% endblock %}
+
+{% block content %}
+  <body class="d-flex flex-column min-vh-100">
+    <div class="container flex-grow-1 my-5">
+      <div class="text-center my-5">
+        <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px" />
         <h1 class="text-title">Token Inválido</h1>
-    </div>
-    <div class="container flex-grow-1 my-5 d-flex justify-content-center align-items-center">
+      </div>
+      <div class="container flex-grow-1 my-5 d-flex justify-content-center align-items-center">
         <div class="w-100" style="max-width: 70vh">
-            <div class="alert alert-danger text-center" role="alert">
-                <p class="mb-4">El enlace de recuperación de contraseña que has usado no es válido o ha expirado.</p>
-                <p>Por favor, solicita un nuevo enlace para restablecer tu contraseña.</p>
-            </div>
-            <div class="text-center mt-4">
-                <a href="{% url 'recovery_password_view' %}" class="btn primary-color fw-bold" style="color: #FFFFFF">
-                    SOLICITAR NUEVO ENLACE
-                </a>
-            </div>
-            <div class="mt-5 text-center">
-                <a href="{% url 'login' %}" class="text-decoration-none text-second">Volver al inicio de sesión</a>
-            </div>
+          <div class="alert alert-danger text-center" role="alert">
+            <p class="mb-4">El enlace de recuperación de contraseña que has usado no es válido o ha expirado.</p>
+            <p>Por favor, solicita un nuevo enlace para restablecer tu contraseña.</p>
+          </div>
+          <div class="text-center mt-4">
+            <a href="{% url 'recovery_password_view' %}" class="btn primary-color fw-bold" style="color: #FFFFFF">SOLICITAR NUEVO ENLACE</a>
+          </div>
+          <div class="mt-5 text-center">
+            <a href="{% url 'login' %}" class="text-decoration-none text-second">Volver al inicio de sesión</a>
+          </div>
         </div>
+      </div>
     </div>
-</div>
-{% include '_footer.html' %}
-</body>
-</html>
+  </body>
+{% endblock %}
