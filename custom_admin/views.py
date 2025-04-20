@@ -227,20 +227,7 @@ def get_doctor(request, user_id):
     try:
         
         doctor_user = CustomUser.objects.select_related('role').get(id=user_id, role__name='Doctor')
-        
-        
         doctor = Doctor.objects.filter(user=doctor_user).first()
-        
-        
-        if not doctor:
-            doctor = Doctor.objects.create(
-                user=doctor_user,
-                years_experience=0,
-                consultation_fee=0.00
-            )
-            print(f"Perfil de doctor creado automáticamente para: {doctor_user.email}")
-
-        
         specialties = DoctorSpecialty.objects.filter(doctor=doctor).select_related('specialty')
         addresses = Address.objects.filter(doctor=doctor)
         availabilities = Availability.objects.filter(doctor=doctor)
@@ -260,8 +247,8 @@ def get_doctor(request, user_id):
                     'username': doctor_user.username,
                     'photo': doctor_user.photo.url if doctor_user.photo else None,
                     'status': doctor_user.status,
-                    'years_experience': doctor.years_experience,
-                    'consultation_fee': float(doctor.consultation_fee)
+                    'consultation_fee': float(doctor.consultation_fee),
+                    'consultation_time': str(doctor.consultation_time)
                 },
                 'specialties': [{
                     'id': spec.specialty.id,  
@@ -281,7 +268,6 @@ def get_doctor(request, user_id):
                 'schedules': [{
                     'weekday': availability.get_weekday_display(),
                     'weekday_value': availability.weekday,
-                    'consultation_time': str(availability.consultation_time),
                     'times': [{
                         'start_time': schedule.start_time.strftime("%H:%M"),
                         'end_time': schedule.end_time.strftime("%H:%M")
@@ -327,9 +313,6 @@ def update_doctor(request, user_id):
         doctor_user.phone = data.get('phone', doctor_user.phone)
         doctor_user.username = data.get('username', doctor_user.username)
         doctor_user.status = data.get('status', doctor_user.status)
-
-        
-        doctor.years_experience = data.get('years_experience', doctor.years_experience)
         doctor.consultation_fee = data.get('consultation_fee', doctor.consultation_fee)
 
         doctor_user.save()
@@ -345,7 +328,6 @@ def update_doctor(request, user_id):
                 'phone': doctor_user.phone,
                 'username': doctor_user.username,
                 'status': doctor_user.status,
-                'years_experience': doctor.years_experience,
                 'consultation_fee': float(doctor.consultation_fee)
             }
         })
@@ -376,8 +358,6 @@ def update_specialty(request, doctor_id, doctor_specialty_id):
 
         
         doctor_specialty.license_number = data['license_number']
-        
-        
         specialty = doctor_specialty.specialty
         specialty.name = data['name']
         specialty.save()
