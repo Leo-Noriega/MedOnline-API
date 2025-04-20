@@ -1,101 +1,94 @@
-<html lang="en">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MedOnline - Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"></script>
-</head>
-<body class="d-flex flex-column min-vh-100">
-{% include '_navBar.html' %}
-<div class="container flex-grow-1 my-5">
-    <div class="text-center my-5">
-        <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px"/>
-        <h1 class="text-title">Inicio de Sesión</h1>
-    </div>
-    <div class="container flex-grow-1 my-5 d-flex justify-content-center align-items-center">
-        <div class="w-100" style="max-width: 70vh">
-            <form id="loginForm" class="w-100" method="POST">
-                {% csrf_token %}
-                <div class="mb-3">
-                    <label for="id_username" class="form-label text-second">Correo Electrónico</label>
-                    {{ form.email }}
-                </div>
-                <div class="mb-3">
-                    <label for="id_password" class="form-label text-second">Contraseña</label>
-                    {{ form.password }}
-                </div>
-                {% if error %}
-                    <div class="text-center alert alert-danger" role="alert">
-                        {{ error }}
-                    </div>
-                {% endif %}
-                <button type="submit" class="btn w-100 primary-color fw-bold" style="color: #FFFFFF">INICIAR SESIÓN
-                </button>
-            </form>
-        </div>
-    </div>
-    <div class="mt-5 text-center">
-        <a href="{% url 'recovery_password_view' %}" class="text-decoration-none text-second">He olvidado mi contraseña</a>
-    </div>
-    <div class="mt-5 text-center">
-        <span>¿Todavía no tienes cuenta? <a href="{% url 'registro' %}" class="text-decoration-none text-second">Quiero registrarme</a></span>
-    </div>
-    </div>
-</div>
-   {% include '_footer.html' %}
-    <script>
-    document.getElementById('loginForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const form = event.target;
-        const formData = new FormData(form);
-        const email = formData.get('email');
-        const password = formData.get('password');
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                body: JSON.stringify({email: email, password: password}),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                }
-            });
+{% extends 'layout/layout.html' %}
+{% load static %}
 
-            const contentType = response.headers.get('content-type');
-            let data;
-            if (contentType && contentType.includes('application/json')) {
-                data = await response.json();
-            } else {
-                throw new Error('Response is not JSON');
+{% block title %}
+  Inicio de Sesión
+{% endblock %}
+
+{% block content %}
+  <body class="d-flex flex-column min-vh-100">
+    <div class="container flex-grow-1 my-5">
+      <div class="text-center my-5">
+        <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px" />
+        <h1 class="text-title">Inicio de Sesión</h1>
+      </div>
+      <div class="container flex-grow-1 my-5 d-flex justify-content-center align-items-center">
+        <div class="w-100" style="max-width: 70vh">
+          <form id="loginForm" class="w-100" method="POST">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="id_username" class="form-label text-second">Correo Electrónico</label>
+              {{ form.email }}
+            </div>
+            <div class="mb-3">
+              <label for="id_password" class="form-label text-second">Contraseña</label>
+              {{ form.password }}
+            </div>
+            {% if error %}
+              <div class="text-center alert alert-danger" role="alert">{{ error }}</div>
+            {% endif %}
+            <button type="submit" class="btn w-100 primary-color fw-bold" style="color: #FFFFFF">INICIAR SESIÓN</button>
+          </form>
+        </div>
+      </div>
+      <div class="mt-5 text-center">
+        <a href="{% url 'recovery_password_view' %}" class="text-decoration-none text-second">He olvidado mi contraseña</a>
+      </div>
+      <div class="mt-5 text-center">
+        <span>¿Todavía no tienes cuenta? <a href="{% url 'registro' %}" class="text-decoration-none text-second">Quiero registrarme</a></span>
+      </div>
+    </div>
+  </body>
+
+  {% block script %}
+    <script>
+      document.getElementById('loginForm').addEventListener('submit', async function (event) {
+        event.preventDefault()
+        const form = event.target
+        const formData = new FormData(form)
+        const email = formData.get('email')
+        const password = formData.get('password')
+        try {
+          const response = await fetch(form.action, {
+            method: 'POST',
+            body: JSON.stringify({ email: email, password: password }),
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': formData.get('csrfmiddlewaretoken')
             }
-            if (response.ok) {
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('refresh_token', data.refresh_token);
-                localStorage.setItem('user_role', data.role);
-                window.location.href = data.redirect_url;
-            } else {
-                displayError('Credenciales incorrectas');
-            }
+          })
+      
+          const contentType = response.headers.get('content-type')
+          let data
+          if (contentType && contentType.includes('application/json')) {
+            data = await response.json()
+          } else {
+            throw new Error('Response is not JSON')
+          }
+          if (response.ok) {
+            localStorage.setItem('access_token', data.access_token)
+            localStorage.setItem('refresh_token', data.refresh_token)
+            localStorage.setItem('user_role', data.role)
+            window.location.href = data.redirect_url
+          } else {
+            displayError('Credenciales incorrectas')
+          }
         } catch (error) {
-            console.error('Error parsing response:', error);
-            displayError('Ocurrió un error con servidor, por favor intenta de nuevo.');
+          console.error('Error parsing response:', error)
+          displayError('Ocurrió un error con servidor, por favor intenta de nuevo.')
         }
-    });
-    function displayError(message) {
-        const form = document.getElementById('loginForm');
-        let errorDiv = form.querySelector('.alert-danger');
+      })
+      function displayError(message) {
+        const form = document.getElementById('loginForm')
+        let errorDiv = form.querySelector('.alert-danger')
         if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.className = 'alert alert-danger';
-            errorDiv.role = 'alert';
-            form.prepend(errorDiv);
+          errorDiv = document.createElement('div')
+          errorDiv.className = 'alert alert-danger'
+          errorDiv.role = 'alert'
+          form.prepend(errorDiv)
         }
-        errorDiv.innerText = message;
-    }
-</script>
-</body>
-</html>
+        errorDiv.innerText = message
+      }
+    </script>
+  {% endblock %}
+{% endblock %}
