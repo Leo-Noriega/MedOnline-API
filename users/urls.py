@@ -13,4 +13,12 @@ urlpatterns = [
     path('token-refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('login/', CustomLoginViewAPI.as_view(), name='login'),
     path('logout/', cerrar_sesion, name='cerrar_sesion'),
+    path("send-reset-email/", send_reset_email, name="send_reset_email"),
+    path("reset-password/", reset_password, name="reset_password"),
+    path('recovery-password/', recovery_password_view, name='recovery_password_view'),
+    path('reset-password/<str:token>/', reset_password_view, name='reset_password_view'),
+    path('register/', register, name='register'),
+    path('register/patient/', register_patient, name='register_patient'),
+    path('register/doctor/', RegisterDoctorView.as_view(), name='register_doctor'),
+    path('user_home/',user_home,name='user_home'),
 ]

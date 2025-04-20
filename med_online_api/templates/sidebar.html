@@ -1,0 +1,140 @@
+<head>
+    <style>
+        @media (min-width: 992px) {
+            main {
+                transition: margin-left 0.5s ease;
+            }
+
+            main.shifted {
+                margin-left: 200px;
+            }
+
+            .offcanvas {
+                padding: 20px;
+                top: 66px !important;
+            }
+        }
+
+        .link-hover.active {
+            border-left-color: rgba(30, 128, 145, 0.7);
+            background-color: rgba(29, 106, 111, 0.1);
+        }
+
+        .link-hover {
+            border-left: 4px solid transparent;
+            background-color: transparent;
+            margin: 3px 0px;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                border-left-color 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .link-hover:hover {
+            border-left-color: rgba(30, 128, 145, 0.7);
+            background-color: rgba(29, 106, 111, 0.1);
+            transform: translateX(-3px);
+            padding: 5px 0px;
+        }
+
+        .link-hover i {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .link-hover:hover i {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<div class="offcanvas-body">
+    <ul class="navbar-nav text" id="menu-options">
+    </ul>
+</div>
+
+<script>
+    
+    // Generar opciones de menú según el rol
+    const userRole = localStorage.getItem('user_role');
+    const menuOptions = document.getElementById('menu-options');
+
+    if (menuOptions) {
+        if (userRole === 'Doctor') {
+            menuOptions.innerHTML = `
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'inicio' %}">
+                        <i class="bi bi-house me-2"></i>
+                        Inicio
+                    </a>
+                </li>
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'mis-consultorios' %}">
+                        <i class="bi bi-hospital me-2"></i>
+                        Consultorios
+                    </a>
+                </li>
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'agenda' %}">
+                        <i class="bi bi-calendar me-2"></i>
+                        Agenda
+                    </a>
+                </li>
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'opiniones' %}">
+                        <i class="bi bi-chat-left-text me-2"></i>
+                        Opiniones
+                    </a>
+                </li>
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'mi-cuenta' %}">
+                        <i class="bi bi-person-circle me-2"></i>
+                        Mi cuenta
+                    </a>
+                </li>
+            `;
+        } else if (userRole === 'Patient') {
+            menuOptions.innerHTML = `
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="#">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Mis citas
+                    </a>
+                </li>
+            `;
+        } else if (userRole === 'Admin') {
+            menuOptions.innerHTML = `
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="#">
+                        <i class="bi bi-people me-2"></i>
+                        Gestión de médicos
+                    </a>
+                </li>
+            `;
+        }
+
+        // Opción de salir 
+        menuOptions.innerHTML += `
+            <li class="nav-item d-flex align-items-center link-hover px-3">
+                <a class="nav-link pe-auto" id="logout-link">
+                    <i class="bi bi-box-arrow-left me-2"></i>
+                    Salir
+                </a>
+            </li>
+        `;
+    }
+
+    function removeItems() {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_role');
+    }
+
+    const logoutLink = document.getElementById('logout-link');
+    if (logoutLink) {
+        logoutLink.addEventListener("click", function (event) {
+            event.preventDefault();
+            removeItems();
+            window.location.href = '/';
+        });
+    }
+    
+</script>

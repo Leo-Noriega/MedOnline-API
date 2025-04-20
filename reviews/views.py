@@ -9,11 +9,18 @@ from django.utils.timezone import now
 from appointments.models import Appointment
 from cryptography.fernet import Fernet
 from django.conf import settings
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 
 fernet = Fernet(settings.FERNET_KEY)
 
 def decrypt_id(encrypted_id):
-        return int(fernet.decrypt(encrypted_id.encode()).decode())
+    try:
+        decrypted_bytes = fernet.decrypt(encrypted_id.encode())
+        return int(decrypted_bytes.decode())
+    except Exception as e:
+        raise  
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
@@ -33,19 +40,35 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         # Asignar el usuario autenticado a la reseña
         serializer.save(user=self.request.user)
-        
+      
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class ReviewDoctorView(View):   
     def get(self, request, token):
         try:
             appointment_id = decrypt_id(token)  
             appointment = get_object_or_404(Appointment, id=appointment_id)
-        except Exception:
-            messages.error(request, "El enlace no es válido.")
-            return redirect("/")
+            doctor = appointment.doctor
+            review_exists = Review.objects.filter(appointment=appointment).exists()
+            
+            context = {
+                "appointment": appointment,
+                "review_token": token,
+                "doctor_name": f"{doctor.user.name} {doctor.user.surnames}",
+                "doctor_photo": doctor.user.photo if doctor.user.photo else None,
+                "review_exists": review_exists,
+            }
+            
+            
+        except Exception as e:
+            print(f"Error: {e}")
+            return JsonResponse(
+                {"error": "El enlace no es válido."},
+                status=400,
+            )
+        return render(request, "review_doctor.html", context)
         
-        return render(request, "review_doctor.html", {"appointment": appointment, "review_token": token})
-    
     def post(self, request, token):
+        print(f"Origin: {request.headers.get('Origin')}")
         try:
             appointment_id = decrypt_id(token)  # 🔹 Descifra el ID de la cita
             appointment = get_object_or_404(Appointment, id=appointment_id)
@@ -53,31 +76,46 @@ class ReviewDoctorView(View):
             messages.error(request, "El enlace no es válido.")
             return redirect("/")
         
-        rating = request.POST.get("rating")
-        comment = request.POST.get("comment")
+        import json
+        try: 
+            data = json.loads(request.body)
+            rating = data.get("rating")
+            comment = data.get("comment")
+        except json.JsonDecodeError:
+            return JsonResponse(
+                {"error": "Error al procesar la solicitud."},
+                status=400,
+            )
 
         if not rating:
-            messages.error(request, "Debes seleccionar una calificación.")
-            return redirect(request.path)
+            return JsonResponse(
+                {"error": "El campo de calificación es obligatorio."},
+                status=400,
+            )
 
         review, created = Review.objects.get_or_create(
             appointment=appointment,
-            user=appointment.user,
             doctor=appointment.doctor,
+            user=appointment.user,
             defaults={"rating": rating, "comment": comment, "review_date": now()},
         ) 
 
         if not created:
-            messages.error(request, "Ya has calificado esta cita.")
-            return redirect("/")
+            return JsonResponse(
+                {"error": "Ya has dejado una reseña para esta cita."},
+                status=400,
+            )
+            
 
         review.rating = rating
         review.comment = comment
         review.review_date = now()
         review.save()
 
-        messages.success(request, "Gracias por tu reseña.")
-        return redirect("/")
+        return JsonResponse(
+            {"message": "Gracias por tu reseña"},
+            status=200,
+        )
         
         
         

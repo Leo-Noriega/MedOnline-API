@@ -32,6 +32,9 @@ class Appointment(models.Model):
     def __str__(self):
         return f"Patient {self.patient_name} {self.patient_surnames} - Doctor {self.doctor.name} - Date {self.appointment_date}"
     
+    def get_status_display(self):
+        return self.get_status_display()
+    
     def save(self, *args, **kwargs):
         # Verificar si el estado ha cambiado
         if self.pk:  # Si ya existe en la base de datos

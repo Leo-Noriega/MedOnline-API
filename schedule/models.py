@@ -14,7 +14,6 @@ class Weekday(models.IntegerChoices):
 class Availability(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='availabilities')
     weekday = models.IntegerField(choices=Weekday.choices, blank=False, null=False)
-    consultation_time = models.DurationField(blank=False, null=False, help_text="Duration of each consultation in HH:MM:SS format")
     
     def __str__(self):
         return f"Availability for {self.doctor.user.name} on {Weekday(self.weekday).label}"
