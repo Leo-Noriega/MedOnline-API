@@ -103,9 +103,15 @@
         } else if (userRole === 'Admin') {
             menuOptions.innerHTML = `
                 <li class="nav-item d-flex align-items-center link-hover px-3">
-                    <a class="nav-link pe-auto" href="#">
+                    <a class="nav-link pe-auto" href="{% url 'admin_home' %}">
                         <i class="bi bi-people me-2"></i>
-                        Gestión de médicos
+                        Panel de administración
+                    </a>
+                </li>
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'admin_account' %}">
+                        <i class="bi bi-person-circle me-2"></i>
+                        Mi perfil
                     </a>
                 </li>
             `;
