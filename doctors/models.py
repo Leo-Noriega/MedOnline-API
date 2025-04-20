@@ -26,7 +26,7 @@ class Address(models.Model):
 class Doctor(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="doctor")
     consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Precio de consulta" )
-    consultation_time = models.DurationField(blank=False, null=False, help_text="Duration de consulta debe tener este formato HH:MM:SS format")
+    consultation_time = models.DurationField(blank=True, null=True, help_text="Duration de consulta debe tener este formato HH:MM:SS format")
 
     
     def __str__(self):
