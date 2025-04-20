@@ -2,11 +2,13 @@ import json
 
 from django.contrib.auth import authenticate, login, logout
 from django.http.response import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormView
+from django.db import transaction
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
@@ -14,7 +16,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 import secrets
+from django.views import View
 from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
@@ -22,9 +26,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth.models import User
-from .forms import CustomLoginForm
-from .models import CustomUser
+from .forms import CustomLoginForm, PatientRegistrationForm, DoctorRegistrationForm
+from .models import Role, CustomUser
 from .serializers import CustomUserSerializer, CustomTokenObtainPairSerializer
+from doctors.models import Doctor, Specialty, DoctorSpecialty, Address
 
 
 class UserViewSets(viewsets.ModelViewSet):
@@ -40,9 +45,6 @@ class UserViewSets(viewsets.ModelViewSet):
         return []
 
 
-from django.shortcuts import redirect
-
-
 def get_redirect_url(user):
     role = user.role.name if user.role else None
 
@@ -50,10 +52,24 @@ def get_redirect_url(user):
     #     return reverse('landing')
     if role == 'Doctor':
         return reverse('inicio')
-    # elif role == 'Patient':
-    #     return reverse('inicio')
+    elif role == 'Patient':
+         return reverse('user_home')
     else:
         return reverse('login')
+    
+@login_required
+def user_home(request):
+    print("Usuario:", request.user)
+    print("Sesión:", request.user.is_authenticated)
+    print("info_sesion:", dict(request.session)) 
+    user_id = request.session.get('_auth_user_id')
+    nombre = request.user.name
+    apellidos = request.user.surnames
+
+    if request.user.role.name not in ['Patient']:
+        return redirect('login')
+    else:
+        return render(request, 'users/userHome.html',  {'nombre': nombre, 'apellidos':apellidos}, status=200)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -98,7 +114,86 @@ def cerrar_sesion(request):
 
 
 def register(request):
+    """Vista para la página inicial de registro donde se elige el tipo de usuario"""
     return render(request, 'users/register.html', status=200)
+
+def register_patient(request):
+    """Vista para el registro de pacientes"""
+    if request.method == 'POST':
+        form = PatientRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            with transaction.atomic():
+                user = form.save(commit=False)
+                user.set_password(form.cleaned_data['password'])
+                
+                try:
+                    role = Role.objects.get(name='Patient')
+                    user.role = role
+                    user.save()
+                    return redirect('login')
+                    
+                except Role.DoesNotExist:
+                    messages.error(request, "El rol de Paciente no existe en el sistema.")
+                    
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+    
+    return render(request, 'users/register_patient.html')
+
+@method_decorator(csrf_exempt, name='dispatch')
+class RegisterDoctorView(View):
+    """Vista para el registro de especialistas (doctores)"""
+    template_name = 'users/register_doctor.html'
+    
+    def get(self, request):
+        specialties = Specialty.objects.all()
+        context = {'specialties': specialties}
+        return render(request, self.template_name, context)
+    
+    def post(self, request):
+        form = DoctorRegistrationForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            try:
+                with transaction.atomic():
+                    # Crear usuario
+                    user = form.save(commit=False)
+                    user.set_password(form.cleaned_data['password'])
+                    
+                    role = Role.objects.get(name='Doctor')
+                    user.role = role
+                    user.save()
+                    
+                    # Crear doctor
+                    doctor = Doctor.objects.create(
+                        user=user,
+                        consultation_fee=form.cleaned_data['consultation_fee'],
+                        consultation_time=form.cleaned_data['consultation_time']
+                    )
+                    
+                    # Crear especialidad del doctor
+                    specialty = form.cleaned_data['specialty']
+                    DoctorSpecialty.objects.create(
+                        doctor=doctor,
+                        specialty=specialty,
+                        license_number=form.cleaned_data['license_number']
+                    )
+                    return redirect('login')
+                    
+            except Role.DoesNotExist:
+                messages.error(request, "El rol de Doctor no existe en el sistema.")
+            except Exception as e:
+                messages.error(request, f"Error durante el registro: {str(e)}")
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{field}: {error}")
+        
+        specialties = Specialty.objects.all()
+        context = {'specialties': specialties, 'form_data': request.POST}
+        return render(request, self.template_name, context)
 
 def recovery_password_view(request):
     return render(request, 'users/recovery_password.html')
