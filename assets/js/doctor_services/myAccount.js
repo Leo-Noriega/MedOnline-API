@@ -41,7 +41,7 @@ function renderUserInfo(data) {
     mainContainer.innerHTML = "";
     const userCard = `
 <div class="d-flex justify-content-between mb-3">
-    <img src="${data.doctor.photo || '/media/user/default.png'}" class="rounded-circle" alt="foto de perfil" style="height: 50px; width: 50px;">
+    <img src="${data.doctor.photo || 'img/profile_placeholder.png'}" class="rounded-circle" alt="foto de perfil" style="height: 50px; width: 50px;">
     <button class="button-edit" onclick='editDoctor()'>Editar</button>
 </div>
 <div class="text row">
