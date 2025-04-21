@@ -37,6 +37,18 @@ class BaseRegistrationForm(forms.ModelForm):
             self.add_error('confirm_password', 'Las contraseñas no coinciden')
             
         return cleaned_data
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if CustomUser.objects.filter(email=email).exists():
+            raise ValidationError("Este correo electrónico ya está registrado")
+        return email
+    
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if CustomUser.objects.filter(username=username).exists():
+            raise ValidationError("Este nombre de usuario ya está en uso")
+        return username
 
 class PatientRegistrationForm(BaseRegistrationForm):
     photo = forms.ImageField(required=False)
@@ -92,3 +104,27 @@ class DoctorRegistrationForm(BaseRegistrationForm):
             return timedelta(hours=hours, minutes=minutes, seconds=seconds)
         except ValueError:
             raise ValidationError("El tiempo de consulta debe tener formato HH:MM:SS")
+    
+    def clean_license_number(self):
+        license_number = self.cleaned_data.get('license_number')
+        
+        license_number = license_number.upper()
+        
+        license_number = license_number.strip()
+        
+        if DoctorSpecialty.objects.filter(license_number=license_number).exists():
+            raise ValidationError("Este número de licencia ya está registrado en el sistema")
+        
+        if license_number.startswith('AESSA-'):
+            code = license_number[6:] 
+            if not code.isdigit() or len(code) != 7:
+                raise ValidationError("El formato AESSA- debe ir seguido de 7 dígitos")
+        elif license_number.startswith('AE-'):
+            code = license_number[3:] 
+            if not code.isdigit() or len(code) != 7:
+                raise ValidationError("El formato AE- debe ir seguido de 7 dígitos")
+        else:
+            if not license_number.isdigit() or not (7 <= len(license_number) <= 8):
+                raise ValidationError("El número de licencia debe contener entre 7 y 8 dígitos")
+        
+        return license_number
