@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    {% load static %}
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reserva de Cita | MedOnline</title>
@@ -29,7 +30,7 @@
     <div class="row justify-content-center">
       <div class="col-lg-8 col-md-10 col-12">
         <div class="text-center mb-4">
-          <img src="your-logo.png" alt="MedOnline Logo" height="50" />
+          <img src="{% static '/img/logo.png' %}" alt="MedOnline Logo" height="50" />
         </div>
         <h2 class="text-center mb-4">Reserva de Cita</h2>
         <form id="appointmentForm">
@@ -38,46 +39,46 @@
               <label for="nombre" class="form-label">Nombre:</label>
               <input type="text" class="form-control" id="nombre" placeholder="Tu nombre" required />
             </div>
-        
+
             <div class="mb-3">
               <label for="apellidos" class="form-label">Apellidos:</label>
               <input type="text" class="form-control" id="apellidos" placeholder="Apellido 1 Apellido 2" required />
             </div>
-        
+
             <div class="mb-3">
               <label for="fecha" class="form-label">Fecha de nacimiento:</label>
               <input type="date" class="form-control" id="fecha" required />
             </div>
-        
+
             <div class="mb-3">
               <label for="telefono" class="form-label">Teléfono:</label>
               <input type="tel" class="form-control" id="telefono" />
             </div>
-        
+
             <!-- Detalles de la cita -->
             <div class="mb-3">
               <label for="dateAppointment" class="form-label">Fecha de la cita:</label>
               <input type="date" class="form-control" id="dateAppointment" required />
             </div>
-        
+
             <div class="mb-3">
               <label for="hora" class="form-label">Hora de la cita:</label>
               <input type="time" class="form-control" id="hora" required />
             </div>
-        
+
             <div class="mb-3">
               <label for="address" class="form-label">Consultorio:</label>
               <select class="form-select" id="address" required>
                 <option value="" disabled selected>Selecciona una opción</option>
               </select>
             </div>
-        
+
             <div class="mb-3">
               <label for="comentario" class="form-label">Comentario para el especialista (opcional):</label>
               <textarea class="form-control" id="comentario" rows="3"></textarea>
             </div>
           </div>
-        
+
           <div class="d-grid">
             <button type="submit" class="btn btn-primary">CONFIRMAR</button>
           </div>
@@ -98,16 +99,16 @@
   <script>
     const doctorId = "{{ doctorId }}";
     const selectAddress = document.querySelector("#address");
-  
-    const endpoint = `/especialista/api/address/${doctorId}/`; 
-  
+
+    const endpoint = `/especialista/api/address/${doctorId}/`;
+
     fetch(endpoint)
       .then(response => response.json())
       .then(data => {
         if (data.addresses) {
           data.addresses.forEach(address => {
             const option = document.createElement("option");
-            option.value = address.id; 
+            option.value = address.id;
             option.textContent = `${address.clinic_name}, ${address.street}, ${address.city}, ${address.state} (${address.postal_code})`;
             selectAddress.appendChild(option);
           });
@@ -120,7 +121,7 @@
 
 <script>
   document.getElementById("appointmentForm").addEventListener("submit", function(event) {
-    event.preventDefault(); 
+    event.preventDefault();
 
     // datos del formulario
     const nombre = document.getElementById("nombre").value;
@@ -135,9 +136,9 @@
     // formato la fecha y hora de la cita
     const fechaHoraCita = `${fechaCita}T${horaCita}:00`;
 
-    //  de la solicitud 
+    //  de la solicitud
     const postData = {
-      user: 3, 
+      user: 3,
       patient_name: nombre,
       patient_surnames: apellidos,
       birthdate: fechaNacimiento,
@@ -163,14 +164,23 @@
         return response.json();
       })
       .then(data => {
-        alert("Cita creada exitosamente.");
+          Swal.fire({
+            icon: "success",
+            title: "Cita creada exitosamente",
+            text: "Tu cita ha sido registrada correctamente.",
+          });
         console.log(data);
       })
       .catch(error => {
         console.error("Error:", error);
-        alert("Ocurrió un error al intentar crear la cita.");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Ocurrió un error al intentar crear la cita.",
+        });
       });
   });
 </script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>
