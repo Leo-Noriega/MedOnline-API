@@ -107,7 +107,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             'unique': 'Ya existe un usuario con este correo electrónico'
         })
     token = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=16, blank=False, null=False, validators=[
+    phone = models.CharField(max_length=16, blank=False, null=False, default="", validators=[
             RegexValidator(
                 regex=r'^\+?1?\d{9,15}$',
                 message="El número de teléfono debe estar en formato: '+999999999'. Hasta 15 dígitos permitidos."
