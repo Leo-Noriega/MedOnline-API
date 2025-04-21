@@ -15,13 +15,14 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
     serializer_class = AvailabilitySerializer
     renderer_classes = [JSONRenderer]
     http_method_names = ['get', 'post', 'put', 'delete']
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
+
 
 @csrf_exempt
 def save_doctor_availability(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body) 
+            data = json.loads(request.body)
             if not isinstance(data, list):
                 return JsonResponse({'error': 'Se esperaba una lista de horarios.'}, status=400)
 
@@ -65,6 +66,7 @@ def save_doctor_availability(request):
 
     return JsonResponse({'error': 'Método no permitido.'}, status=405)
 
+
 def get_doctor_schedule(request, doctor_id):
     try:
         availabilities = Availability.objects.filter(doctor_id=doctor_id).select_related('doctor')
@@ -77,14 +79,20 @@ def get_doctor_schedule(request, doctor_id):
             daily_schedules = DailySchedule.objects.filter(availability=availability)
             for daily_schedule in daily_schedules:
                 schedule_data.append({
-                    'id':availability.id,
+                    'id': availability.id,
                     'weekday': availability.weekday,
                     'weekday_label': availability.get_weekday_display(),
                     'start_time': str(daily_schedule.start_time),
                     'end_time': str(daily_schedule.end_time),
                 })
-
-        return JsonResponse({'doctor_id': doctor_id, 'schedule': schedule_data}, status=200)
+        doctor = Doctor.objects.get(id=doctor_id)
+        return JsonResponse({
+            'doctor': {
+                'id': doctor.id,
+                'consultation_time': doctor.consultation_time.total_seconds() * 1000000000,
+            },
+            'schedule': schedule_data
+        }, status=200)
 
     except Exception as e:
         print(f"Error al obtener el horario: {e}")
