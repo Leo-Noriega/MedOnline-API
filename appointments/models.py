@@ -24,7 +24,7 @@ class Appointment(models.Model):
     patient_surnames = models.CharField(max_length=80, blank=False, null=False, default="Unknown Surnames")
     birthdate = models.DateField(null=True, blank=True)
     gender = models.IntegerField(choices=Gender.choices, blank=True, null=True)
-    phone = models.CharField(max_length=16, blank=False, null=False, default="0000000000")
+    phone = models.CharField(max_length=10, blank=False, null=False, default="")
     note = models.TextField(blank=False, default="No notes provided")
     appointment_date = models.DateTimeField(null=False, blank=False)
     status = models.IntegerField(choices=Status.choices, default=Status.PENDING, blank=False, null=False)
