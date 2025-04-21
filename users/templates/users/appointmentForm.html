@@ -32,54 +32,52 @@
           <img src="your-logo.png" alt="MedOnline Logo" height="50" />
         </div>
         <h2 class="text-center mb-4">Reserva de Cita</h2>
-
-        <form>
+        <form id="appointmentForm">
           <div class="mb-4">
-            <p class="section-title">Información personal</p>
-
             <div class="mb-3">
               <label for="nombre" class="form-label">Nombre:</label>
               <input type="text" class="form-control" id="nombre" placeholder="Tu nombre" required />
             </div>
-
+        
             <div class="mb-3">
               <label for="apellidos" class="form-label">Apellidos:</label>
               <input type="text" class="form-control" id="apellidos" placeholder="Apellido 1 Apellido 2" required />
             </div>
-
-            <p class="text-muted small">
-              Puedes cambiar tu información personal en la
-              <a href="#">configuración de tu cuenta</a>.
-            </p>
-
+        
             <div class="mb-3">
               <label for="fecha" class="form-label">Fecha de nacimiento:</label>
               <input type="date" class="form-control" id="fecha" required />
             </div>
-
+        
             <div class="mb-3">
-              <label for="telefono" class="form-label">Información de contacto:</label>
+              <label for="telefono" class="form-label">Teléfono:</label>
               <input type="tel" class="form-control" id="telefono" />
             </div>
-
+        
+            <!-- Detalles de la cita -->
             <div class="mb-3">
-              <label for="comentario" class="form-label">
-                Comentario para el especialista (opcional):
-              </label>
-              <textarea class="form-control" id="comentario" rows="3"
-                placeholder="Puedes añadir cualquier comentario que sea de interés para el especialista"></textarea>
+              <label for="dateAppointment" class="form-label">Fecha de la cita:</label>
+              <input type="date" class="form-control" id="dateAppointment" required />
+            </div>
+        
+            <div class="mb-3">
+              <label for="hora" class="form-label">Hora de la cita:</label>
+              <input type="time" class="form-control" id="hora" required />
+            </div>
+        
+            <div class="mb-3">
+              <label for="address" class="form-label">Consultorio:</label>
+              <select class="form-select" id="address" required>
+                <option value="" disabled selected>Selecciona una opción</option>
+              </select>
+            </div>
+        
+            <div class="mb-3">
+              <label for="comentario" class="form-label">Comentario para el especialista (opcional):</label>
+              <textarea class="form-control" id="comentario" rows="3"></textarea>
             </div>
           </div>
-
-          <div class="card mb-4">
-            <div class="card-body">
-              <p class="mb-1"><strong>Nombre especialista</strong></p>
-              <p class="mb-1 text-muted">Especialidad</p>
-              <p class="mb-1"><i class="bi bi-calendar"></i> Fecha dd/mm/aaaa 00:00</p>
-              <p class="mb-0"><i class="bi bi-geo-alt"></i> Ubicación del consultorio</p>
-            </div>
-          </div>
-
+        
           <div class="d-grid">
             <button type="submit" class="btn btn-primary">CONFIRMAR</button>
           </div>
@@ -97,5 +95,82 @@
       utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.min.js"
     });
   </script>
+  <script>
+    const doctorId = "{{ doctorId }}";
+    const selectAddress = document.querySelector("#address");
+  
+    const endpoint = `/especialista/api/address/${doctorId}/`; 
+  
+    fetch(endpoint)
+      .then(response => response.json())
+      .then(data => {
+        if (data.addresses) {
+          data.addresses.forEach(address => {
+            const option = document.createElement("option");
+            option.value = address.id; 
+            option.textContent = `${address.clinic_name}, ${address.street}, ${address.city}, ${address.state} (${address.postal_code})`;
+            selectAddress.appendChild(option);
+          });
+        } else {
+          console.error("No se encontraron direcciones.");
+        }
+      })
+      .catch(error => console.error("Error al obtener direcciones:", error));
+  </script>
+
+<script>
+  document.getElementById("appointmentForm").addEventListener("submit", function(event) {
+    event.preventDefault(); 
+
+    // datos del formulario
+    const nombre = document.getElementById("nombre").value;
+    const apellidos = document.getElementById("apellidos").value;
+    const fechaNacimiento = document.getElementById("fecha").value;
+    const telefono = document.getElementById("telefono").value;
+    const fechaCita = document.getElementById("dateAppointment").value;
+    const horaCita = document.getElementById("hora").value;
+    const direccionId = document.getElementById("address").value;
+    const comentario = document.getElementById("comentario").value;
+
+    // formato la fecha y hora de la cita
+    const fechaHoraCita = `${fechaCita}T${horaCita}:00`;
+
+    //  de la solicitud 
+    const postData = {
+      user: 3, 
+      patient_name: nombre,
+      patient_surnames: apellidos,
+      birthdate: fechaNacimiento,
+      phone: telefono,
+      doctor: doctorId,
+      address: direccionId,
+      appointment_date: fechaHoraCita,
+      note: comentario,
+      status: 1 ,
+    };
+
+    fetch("/appointments/api/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(postData)
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error("Error al crear la cita.");
+        }
+        return response.json();
+      })
+      .then(data => {
+        alert("Cita creada exitosamente.");
+        console.log(data);
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        alert("Ocurrió un error al intentar crear la cita.");
+      });
+  });
+</script>
 </body>
 </html>

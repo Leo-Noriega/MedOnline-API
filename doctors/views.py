@@ -262,3 +262,25 @@ def agenda(request):
         return redirect('login')
     else:
         return render(request, 'schedule.html', {'doctor_id': doctor_id, 'doctor_time':doctor_time}, status=200)
+    
+
+def get_doctor_addresses(request, doctor_id):
+    try:
+        doctor = Doctor.objects.get(id=doctor_id)
+        addresses = Address.objects.filter(doctor=doctor)
+        addresses_data = [
+            {
+                "id": address.id,
+                "clinic_name": address.clinic_name,
+                "street": address.street,
+                "city": address.city,
+                "state": address.state,
+                "postal_code": address.postal_code,
+            }
+            for address in addresses
+        ]
+        return JsonResponse({"addresses": addresses_data}, safe=False, status=200)
+    except Doctor.DoesNotExist:
+        return JsonResponse({"error": "Doctor no encontrado"}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": f"Error inesperado: {str(e)}"}, status=500)

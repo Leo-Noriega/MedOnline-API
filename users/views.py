@@ -390,6 +390,22 @@ def get_doctors_by_specialty_and_state(specialty_id, state):
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
     return results
 
+def appointment(request):
+    """Vista para la página de citas médicas"""
+    doctor_id = request.GET.get('doctor_id')  # Obtén el ID del doctor desde la URL
+    user_id = request.session.get('_auth_user_id')
+    nombre = request.user.name
+    apellidos = request.user.surnames
+
+    if request.user.role.name not in ['Patient']:
+        return redirect('login')
+    else:
+        return render(request, 'users/appointmentForm.html', {
+            'nombre': nombre,
+            'apellidos': apellidos,
+            'doctorId': doctor_id
+        }, status=200)
+
 def search_doctors(request):
     specialty_id = request.GET.get('specialty_id')
     state = request.GET.get('state')

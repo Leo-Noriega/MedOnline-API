@@ -19,4 +19,5 @@ urlpatterns = [
     path('asociar-especialidad/',associate_specialty,name='asociar'),
     path('<int:doctor_id>/reviews/', get_doctor_reviews,name='reviews_doctor'),
     path('mi-agenda/',agenda,name='agenda'),
+    path('api/address/<int:doctor_id>/', get_doctor_addresses,name='doctor_addresses'),
 ]
