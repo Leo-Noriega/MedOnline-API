@@ -544,7 +544,8 @@ def appointment(request):
         return render(request, 'users/appointmentForm.html', {
             'nombre': nombre,
             'apellidos': apellidos,
-            'doctorId': doctor_id
+            'doctorId': doctor_id,
+            'userId': user_id,
         }, status=200)
 
 def search_doctors(request):

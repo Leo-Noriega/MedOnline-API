@@ -124,6 +124,7 @@
     event.preventDefault();
 
     // datos del formulario
+    const userId = "{{ userId }}";
     const nombre = document.getElementById("nombre").value;
     const apellidos = document.getElementById("apellidos").value;
     const fechaNacimiento = document.getElementById("fecha").value;
@@ -138,7 +139,7 @@
 
     //  de la solicitud
     const postData = {
-      user: 3,
+      user: userId,
       patient_name: nombre,
       patient_surnames: apellidos,
       birthdate: fechaNacimiento,
