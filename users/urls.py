@@ -20,5 +20,6 @@ urlpatterns = [
     path('register/', register, name='register'),
     path('register/patient/', register_patient, name='register_patient'),
     path('register/doctor/', RegisterDoctorView.as_view(), name='register_doctor'),
-    path('user_home/',user_home,name='user_home'),
+    path('user_home/', user_home, name='user_home'),
+    path('search-doctors/', DoctorSearchAPIView.as_view(), name='search-doctors'),
 ]

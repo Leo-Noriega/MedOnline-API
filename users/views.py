@@ -1,5 +1,4 @@
 import json
-
 from django.contrib.auth import authenticate, login, logout
 from django.http.response import JsonResponse
 from django.shortcuts import render, redirect
@@ -30,6 +29,7 @@ from .forms import CustomLoginForm, PatientRegistrationForm, DoctorRegistrationF
 from .models import Role, CustomUser
 from .serializers import CustomUserSerializer, CustomTokenObtainPairSerializer
 from doctors.models import Doctor, Specialty, DoctorSpecialty, Address
+from django.db import connection
 
 
 class UserViewSets(viewsets.ModelViewSet):
@@ -69,7 +69,20 @@ def user_home(request):
     if request.user.role.name not in ['Patient']:
         return redirect('login')
     else:
-        return render(request, 'users/userHome.html',  {'nombre': nombre, 'apellidos':apellidos}, status=200)
+        specialities = get_all_specialities()
+        mexican_states = [
+            "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Chiapas", "Chihuahua",
+            "Ciudad de México", "Coahuila", "Colima", "Durango", "Guanajuato", "Guerrero", "Hidalgo",
+            "Jalisco", "Estado de México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", "Oaxaca",
+            "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", "Sinaloa", "Sonora", "Tabasco",
+            "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"
+        ]
+        return render(request, 'users/userHome.html',
+                      {'nombre': nombre,
+                       'apellidos':apellidos,
+                       'specialities' : specialities,
+                       'mexican_states': mexican_states},
+                      status=200)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -353,7 +366,54 @@ def reset_password(request):
 
             return JsonResponse({"message": "Contraseña restablecida exitosamente."})
         return JsonResponse({"error": "Token inválido"}, status=400)
-    
+
+def get_all_specialities():
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT * FROM doctors_specialty")
+        rows = cursor.fetchall()
+    return rows
+
+def get_doctors_by_specialty_and_state(specialty_id, state):
+
+    query = """
+    SELECT u.name, u.surnames, doctor.id, u.photo, sp.name AS specialty, da.clinic_name, da.street, da.city, da.state, da.postal_code
+    FROM doctors_doctor doctor
+    JOIN user u ON doctor.user_id = u.id
+    JOIN doctors_doctorspecialty ds ON doctor.id = ds.doctor_id
+    JOIN doctors_specialty sp ON ds.specialty_id = sp.id
+    JOIN doctors_address da ON doctor.id = da.doctor_id
+    WHERE ds.specialty_id = %s AND da.state = %s
+    """
+    with connection.cursor() as cursor:
+        cursor.execute(query, [specialty_id, state])
+        columns = [col[0] for col in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+    return results
+
+def search_doctors(request):
+    specialty_id = request.GET.get('specialty_id')
+    state = request.GET.get('state')
+    if not specialty_id or not state:
+        return JsonResponse({'error': 'Missing parameters'}, status=400)
+
+    doctors = get_doctors_by_specialty_and_state(specialty_id, state)
+    return JsonResponse({'doctors': doctors}, safe=False)
+
+
+class DoctorSearchAPIView(APIView):
+    def get(self, request):
+        specialty_id = request.query_params.get('specialty_id')
+        state = request.query_params.get('state')
+
+        if not specialty_id or not state:
+            return Response({'error': 'Missing parameters: specialty_id and state are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            doctors = get_doctors_by_specialty_and_state(specialty_id, state)
+            return Response({'doctors': doctors}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class UserUpdateView(APIView):
     def put(self, request, user_id):
