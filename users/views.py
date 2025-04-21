@@ -143,15 +143,89 @@ def register_patient(request):
                     role = Role.objects.get(name='Patient')
                     user.role = role
                     user.save()
-                    return redirect('login')
+                    
+                    # Enviar correo de confirmación
+                    send_mail(
+                        subject="Bienvenido a MedOnline - Registro Exitoso",
+                        message=f"Tu cuenta ha sido creada exitosamente!", 
+                        from_email="no-reply@medonline.com",
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                        html_message=f"""
+                        <!DOCTYPE html>
+                        <html lang="es">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>MedOnline - Registro Exitoso</title>
+                        </head>
+                        <body style="font-family: 'DM Sans', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; color: #7F807F; -webkit-font-smoothing: antialiased; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+                            <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; margin: 20px auto; background-color: #FFFFFF; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+                                <tr>
+                                    <td align="center" bgcolor="#2E5077" style="padding: 20px; text-align: center; height: 40px;">
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td style="padding: 30px 30px 20px 30px;">
+                                        <h1 style="color: #2E5077; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 20px; line-height: 32px;">¡Bienvenido/a a MedOnline!</h1>
+                                                        
+                                        <p style="margin-top: 20px; margin-bottom: 15px; line-height: 24px; font-size: 16px;">Hola {user.name},</p>
+                                        <p style="margin-top: 0; margin-bottom: 20px; line-height: 24px; font-size: 16px;">Gracias por registrarte en MedOnline. Tu cuenta ha sido creada exitosamente y ya puedes disfrutar de todos nuestros servicios.</p>
+                                        
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding: 25px 0;">
+                                                    <table border="0" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td align="center" bgcolor="#2E5077" style="border-radius: 4px;">
+                                                                <a href="http://localhost:8000/users/login/" target="_blank" style="display: inline-block; padding: 12px 30px; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: 500;">Iniciar Sesión</a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin-top: 0; margin-bottom: 15px; line-height: 24px; font-size: 16px; color: #565C5F;">Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos a <a href="mailto:medonlineapi@gmail.com" style="color: #4DA1A9; text-decoration: none;">medonlineapi@gmail.com</a>.</p>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td align="center" bgcolor="#F9F9F9" style="padding: 20px; text-align: center; color: #7F807F; font-size: 14px;">
+                                        <p style="margin: 5px 0;">Atentamente, El equipo de MedOnline</p>
+                                        <p style="margin: 5px 0;">&copy; 2025 MedOnline. Todos los derechos reservados.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </body>
+                        </html>
+                        """
+                    )
+                    
+                    # Verificar si se solicita respuesta JSON
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'message': 'Registro exitoso. Redirigiendo...'})
+                    else:
+                        messages.success(request, "Registro exitoso. Ahora puedes iniciar sesión.")
+                        return redirect('login')
                     
                 except Role.DoesNotExist:
-                    messages.error(request, "El rol de Paciente no existe en el sistema.")
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({'error': "El rol de Paciente no existe en el sistema."}, status=400)
+                    else:
+                        messages.error(request, "El rol de Paciente no existe en el sistema.")
                     
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"{field}: {error}")
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                errors = {}
+                for field, error_list in form.errors.items():
+                    errors[field] = [str(error) for error in error_list]
+                return JsonResponse({'error': "Por favor corrija los errores en el formulario.", 'field_errors': errors}, status=400)
+            else:
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
     
     return render(request, 'users/register_patient.html')
 
@@ -193,6 +267,73 @@ class RegisterDoctorView(View):
                         specialty=specialty,
                         license_number=form.cleaned_data['license_number']
                     )
+                    
+                    # Enviar correo de confirmación
+                    send_mail(
+                        subject="Bienvenido a MedOnline - Registro de Especialista Exitoso",
+                        message=f"Tu cuenta de especialista ha sido creada exitosamente!", 
+                        from_email="no-reply@medonline.com",
+                        recipient_list=[user.email],
+                        fail_silently=False,
+                        html_message=f"""
+                        <!DOCTYPE html>
+                        <html lang="es">
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>MedOnline - Registro de Especialista Exitoso</title>
+                        </head>
+                        <body style="font-family: 'DM Sans', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 0; color: #7F807F; -webkit-font-smoothing: antialiased; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+                            <table align="center" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; margin: 20px auto; background-color: #FFFFFF; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+                                <tr>
+                                    <td align="center" bgcolor="#2E5077" style="padding: 20px; text-align: center; height: 40px;">
+                                    </td>
+                                </tr>
+                                
+                                <tr>
+                                    <td style="padding: 30px 30px 20px 30px;">
+                                        <h1 style="color: #2E5077; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 20px; line-height: 32px;">¡Bienvenido/a a MedOnline!</h1>
+                                                        
+                                        <p style="margin-top: 20px; margin-bottom: 15px; line-height: 24px; font-size: 16px;">Hola Dr./Dra. {user.surnames},</p>
+                                        <p style="margin-top: 0; margin-bottom: 20px; line-height: 24px; font-size: 16px;">Gracias por registrarte como especialista en MedOnline. Tu cuenta ha sido creada exitosamente y ya puedes comenzar a ofrecer tus servicios profesionales a través de nuestra plataforma.</p>
+                                        
+                                        <p style="margin-top: 0; margin-bottom: 20px; line-height: 24px; font-size: 16px;">Información de tu registro:</p>
+                                        <ul style="margin-top: 0; margin-bottom: 20px; line-height: 24px; font-size: 16px; color: #565C5F;">
+                                            <li>Especialidad: {specialty.name}</li>
+                                            <li>Tarifa de consulta: ${doctor.consultation_fee}</li>
+                                            <li>Tiempo de consulta: {str(doctor.consultation_time).split(':')[0]}h:{str(doctor.consultation_time).split(':')[1]}m</li>
+                                        </ul>
+                                        
+                                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding: 25px 0;">
+                                                    <table border="0" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td align="center" bgcolor="#2E5077" style="border-radius: 4px;">
+                                                                <a href="http://localhost:8000/users/login/" target="_blank" style="display: inline-block; padding: 12px 30px; font-size: 16px; color: #ffffff; text-decoration: none; border-radius: 4px; font-weight: 500;">Iniciar Sesión</a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <p style="margin-top: 0; margin-bottom: 15px; line-height: 24px; font-size: 16px; color: #565C5F;">Si tienes alguna pregunta o necesitas ayuda, no dudes en contactarnos a <a href="mailto:medonlineapi@gmail.com" style="color: #4DA1A9; text-decoration: none;">medonlineapi@gmail.com</a>.</p>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td align="center" bgcolor="#F9F9F9" style="padding: 20px; text-align: center; color: #7F807F; font-size: 14px;">
+                                        <p style="margin: 5px 0;">Atentamente, El equipo de MedOnline</p>
+                                        <p style="margin: 5px 0;">&copy; 2025 MedOnline. Todos los derechos reservados.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </body>
+                        </html>
+                        """
+                    )
+                    
                     return redirect('login')
                     
             except Role.DoesNotExist:
@@ -403,7 +544,8 @@ def appointment(request):
         return render(request, 'users/appointmentForm.html', {
             'nombre': nombre,
             'apellidos': apellidos,
-            'doctorId': doctor_id
+            'doctorId': doctor_id,
+            'userId': user_id,
         }, status=200)
 
 def search_doctors(request):

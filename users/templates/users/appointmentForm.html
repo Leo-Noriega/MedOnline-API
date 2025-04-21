@@ -129,7 +129,9 @@
 <script>
     document.getElementById("appointmentForm").addEventListener("submit", function (event) {
         event.preventDefault();
+
         // datos del formulario
+        const userId = "{{ userId }}";
         const nombre = document.getElementById("nombre").value.trim();
         const apellidos = document.getElementById("apellidos").value.trim();
         const fechaNacimiento = document.getElementById("fecha").value;
@@ -206,13 +208,12 @@
         }
 
 
-
         // formato la fecha y hora de la cita
         const fechaHoraCita = `${fechaCita}T${horaCita}:00`;
 
         //  de la solicitud
         const postData = {
-            user: 3,
+            user: userId,
             patient_name: nombre,
             patient_surnames: apellidos,
             birthdate: fechaNacimiento,
@@ -254,6 +255,8 @@
                 });
             });
     });
+
+
 </script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
