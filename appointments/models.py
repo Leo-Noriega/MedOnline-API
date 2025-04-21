@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from doctors.models import Doctor, Address
 import logging
+from django.core.validators import RegexValidator
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ class Appointment(models.Model):
     patient_surnames = models.CharField(max_length=80, blank=False, null=False, default="Unknown Surnames")
     birthdate = models.DateField(null=True, blank=True)
     gender = models.IntegerField(choices=Gender.choices, blank=True, null=True)
-    phone = models.CharField(max_length=10, blank=False, null=False, default="")
+    phone = models.CharField(max_length=16, blank=False, null=False, validators=[RegexValidator(regex=r'^\+?1?\d{9,15}$',message="El número de teléfono debe estar en formato: '+999999999'. Hasta 15 dígitos permitidos.")])
     note = models.TextField(blank=False, default="No notes provided")
     appointment_date = models.DateTimeField(null=False, blank=False)
     status = models.IntegerField(choices=Status.choices, default=Status.PENDING, blank=False, null=False)
