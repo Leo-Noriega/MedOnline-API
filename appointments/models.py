@@ -20,14 +20,14 @@ class Appointment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_user")
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
     address = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='addresses')
-    patient_name = models.CharField(max_length=60, blank=True, null=True)
-    patient_surnames = models.CharField(max_length=80, blank=True, null=True)
+    patient_name = models.CharField(max_length=60, blank=False, null=False, default="Unknown Patient")
+    patient_surnames = models.CharField(max_length=80, blank=False, null=False, default="Unknown Surnames")
     birthdate = models.DateField(null=True, blank=True)
     gender = models.IntegerField(choices=Gender.choices, blank=True, null=True)
-    phone = models.CharField(max_length=16, blank=True, null=True)
-    note = models.TextField(blank=True, null=True)
+    phone = models.CharField(max_length=16, blank=False, null=False, default="0000000000")
+    note = models.TextField(blank=False, default="No notes provided")
     appointment_date = models.DateTimeField(null=False, blank=False)
-    status = models.IntegerField(choices=Status.choices, default=Status.PENDING, blank=False, null=True)
+    status = models.IntegerField(choices=Status.choices, default=Status.PENDING, blank=False, null=False)
     
     def __str__(self):
         return f"Patient {self.patient_name} {self.patient_surnames} - Doctor {self.doctor.name} - Date {self.appointment_date}"
@@ -46,3 +46,5 @@ class Appointment(models.Model):
                 Review.handle_appointment_status_change(self)
 
         super().save(*args, **kwargs)  # Guardar normalmente en la base de datos
+    class Meta:
+        db_table = 'appointment'
