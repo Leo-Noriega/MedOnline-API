@@ -26,6 +26,9 @@ class Review(models.Model):
     
     def __str__(self):
         return f"Review from {self.user.name} {self.user.surnames} - {self.user.username}"
+
+    class Meta:
+        db_table = 'reviews_review'
     
 
     def send_review_email(self):

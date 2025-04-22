@@ -9,13 +9,13 @@ class Specialty(models.Model):
     def __str__(self):
         return self.name
     class Meta:
-        db_table = 'speciality'
+        db_table = 'doctors_specialty'
 
 
 class Address(models.Model):
     clinic_name = models.CharField(max_length=150, blank=False, null=False)
     street = models.CharField(max_length=150, blank=False, null=False)  
-    city = models.CharField(max_length=100, blank=False, null=False),
+    city = models.CharField(max_length=100, blank=False, null=False)
     state = models.CharField(max_length=100, blank=False, null=False)
     postal_code = models.CharField(max_length=5, blank=False, null=False)
     doctor = models.ForeignKey(
@@ -28,7 +28,7 @@ class Address(models.Model):
         return f"{self.clinic_name} - {self.city}, {self.state}"
 
     class Meta:
-        db_table = 'address'
+        db_table = 'doctors_address'
 
 
 class Doctor(models.Model):
@@ -47,7 +47,7 @@ class Doctor(models.Model):
             raise ValidationError("The consultation time cannot be negative.")
 
     class Meta:
-        db_table = 'doctor'
+        db_table = 'doctors_doctor'
     
 
 class DoctorSpecialty(models.Model):
@@ -64,7 +64,7 @@ class DoctorSpecialty(models.Model):
         return f"{self.doctor.user.name} - {self.specialty.name} - {self.license_number}"
     
     class Meta:
-        db_table = 'doctor_speciality'
+        db_table = 'doctors_doctorspecialty'
 
 
 @receiver(post_migrate)

@@ -48,4 +48,4 @@ class Appointment(models.Model):
 
         super().save(*args, **kwargs)  # Guardar normalmente en la base de datos
     class Meta:
-        db_table = 'appointment'
+        db_table = 'appointments_appointment'

@@ -22,6 +22,10 @@ class Availability(models.Model):
     def __str__(self):
         return f"Availability for {self.doctor.user.name} on {Weekday(self.weekday).label}"
 
+    class Meta:
+        db_table = ('schedule_availability'
+                    '')
+
 
 class DailySchedule(models.Model):
     availability = models.ForeignKey(Availability, on_delete=models.CASCADE, related_name='daily_schedules', blank=False, null=False)
@@ -39,3 +43,6 @@ class DailySchedule(models.Model):
 
     def __str__(self):
         return f"Schedule for {self.availability.doctor.user.name} on {Weekday(self.availability.weekday).label} from {self.start_time} to {self.end_time}"
+
+    class Meta:
+        db_table = 'schedule_dailyschedule'
