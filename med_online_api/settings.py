@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # Configuration Data
-ruta = os.path.dirname(os.path.abspath(__file__))
+ruta = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Apunta a la raíz del proyecto
 f = open("{}/conf.json".format(ruta), "r")
 conf_string = f.read()
 f.close()
