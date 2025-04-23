@@ -398,11 +398,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <h6 class="mb-0">${schedule.weekday}</h6>
-                        <button class="button-edit" onclick='editScheduleDetails(${JSON.stringify(schedule).replace(/"/g, "&quot;")})'>
-                            <i class="bi bi-pencil"></i>
-                        </button>
                     </div>
-                    <p class="mb-1"><small>Tiempo de consulta: ${schedule.consultation_time}</small></p>
                     ${schedule.times.map(time => `
                         <div class="badge bg-light text-dark mb-1">
                             ${time.start_time} - ${time.end_time}
@@ -415,8 +411,6 @@
     }
 
     function editSpecialtyDetails(specialty) {
-
-
         if (!specialty || !specialty.doctor_id) {
             mostrarToastGlobal({
                 type: 'danger',
@@ -440,7 +434,7 @@
             </div>
             <div class="d-flex justify-content-end mt-3">
                 <button class="button-edit me-2" onclick="closeToast()">Cancelar</button>
-                <button class="button-principal" onclick="updateSpecialty(${specialty.doctor_id}, ${specialty.doctor_specialty_id})">
+                <button class="button-principal" onclick="updateSpecialty(${specialty.doctor_id}, ${specialty.specialty_id})">
                     Guardar
                 </button>
             </div>
@@ -470,12 +464,6 @@
                             <h6 class="mb-0 text-primary">${specialty.name || ''}</h6>
                             <small class="text-muted">Licencia: ${specialty.license_number || ''}</small>
                         </div>
-                        <button class="button-edit" onclick='editSpecialtyDetails(${JSON.stringify({
-            ...specialty,
-            doctor_id: userId
-        }).replace(/'/g, "\\'")})'">
-                            <i class="bi bi-pencil"></i> Editar
-                        </button>
                     </div>
                 </div>
             </div>

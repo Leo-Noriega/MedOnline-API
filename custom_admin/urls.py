@@ -15,7 +15,7 @@ urlpatterns = [
     path('appointments/<int:appointment_id>/status/', update_appointment_status, name='update_appointment_status'),
     path('doctors/<int:user_id>/', get_doctor, name='get_doctor'),
     path('doctors/update/<int:user_id>/', update_doctor, name='update_doctor'),
-    path('doctors/<int:doctor_id>/specialties/<int:doctor_specialty_id>/', update_specialty, name='update_specialty'),
+    path('doctors/<int:doctor_id>/specialties/<int:specialty_id>/', update_specialty, name='update_specialty'),
     path('doctors/addresses/<int:address_id>/', update_address, name='update_address'),
     path('doctors/<int:doctor_id>/schedules/', update_schedule, name='update_schedule'),
 ]

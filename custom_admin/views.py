@@ -252,7 +252,8 @@ def get_doctor(request, user_id):
                 },
                 'specialties': [{
                     'id': spec.specialty.id,  
-                    'doctor_specialty_id': spec.id,  
+                    'doctor_specialty_id': spec.id,
+                    'specialty_id': spec.specialty.id,
                     'name': spec.specialty.name,
                     'license_number': spec.license_number,
                     'doctor_id': doctor.id
@@ -337,17 +338,27 @@ def update_doctor(request, user_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 @require_http_methods(["PUT"])
-def update_specialty(request, doctor_id, doctor_specialty_id):
+def update_specialty(request, doctor_id, specialty_id):
     try:
         data = json.loads(request.body)
-        print(f"Recibiendo actualización para doctor_id: {doctor_id}, doctor_specialty_id: {doctor_specialty_id}")
+        print(f"Recibiendo actualización para doctor_id: {doctor_id}, doctor_specialty_id: {specialty_id}")
         print(f"Datos recibidos: {data}")
 
         
-        doctor_specialty = DoctorSpecialty.objects.select_related('specialty', 'doctor').get(
-            id=doctor_specialty_id,
-            doctor_id=doctor_id
-        )
+        # doctor_specialty = DoctorSpecialty.objects.select_related('specialty', 'doctor').get(
+        #     id=specialty_id,
+        #     doctor__id=doctor_id
+        # )
+
+        # Debugging: Log all DoctorSpecialty objects for the given doctor_id
+        specialties = DoctorSpecialty.objects.filter(doctor__id=doctor_id)
+        print(
+            f"Especialidades encontradas para doctor_id {doctor_id}: {list(specialties.values('id', 'specialty__name', 'license_number'))}")
+
+        # Fetch the DoctorSpecialty object
+        doctor_specialty = DoctorSpecialty.objects.select_related('specialty', 'doctor').filter(
+            id=specialty_id, doctor__id=doctor_id
+        ).first()
         
         
         if not data.get('name') or not data.get('license_number'):
@@ -369,18 +380,17 @@ def update_specialty(request, doctor_id, doctor_specialty_id):
             'message': 'Especialidad actualizada exitosamente',
             'data': {
                 'id': specialty.id,
-                'doctor_specialty_id': doctor_specialty.id,
+                'specialty_id': doctor_specialty.specialty_id,
                 'name': specialty.name,
                 'license_number': doctor_specialty.license_number,
                 'doctor_id': doctor_id
             }
         })
-        
-    except DoctorSpecialty.DoesNotExist:
-        return JsonResponse({
-            'status': 'error',
-            'message': 'Especialidad no encontrada'
-        }, status=404)
+    # except DoctorSpecialty.DoesNotExist:
+    #     return JsonResponse({
+    #         'status': 'error',
+    #         'message': 'Especialidad no encontrada'
+    #     }, status=404)
     except Exception as e:
         print(f"Error en update_specialty: {str(e)}")
         return JsonResponse({
