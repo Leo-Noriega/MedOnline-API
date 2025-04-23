@@ -13,11 +13,17 @@ INPUT_CLASS = 'form-control'
 class CustomLoginForm(AuthenticationForm):
     email = forms.EmailField(
         label="Correo Electrónico",
-        widget=forms.TextInput(attrs={'class': INPUT_CLASS})
+        widget=forms.TextInput(attrs={
+            'class': INPUT_CLASS,
+            'placeholder': 'Escribe aquí tu correo electrónico'
+        })
     )
     password = forms.CharField(
         label="Contraseña",
-        widget=forms.PasswordInput(attrs={'class': INPUT_CLASS})
+        widget=forms.PasswordInput(attrs={
+            'class': INPUT_CLASS,
+            'placeholder': 'Escribe tu contraseña'
+        })
     )
 
 class BaseRegistrationForm(forms.ModelForm):

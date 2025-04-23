@@ -9,6 +9,7 @@ from django.db import models
 from django.db.models.signals import post_migrate
 from django.dispatch.dispatcher import receiver
 from django.utils.timezone import now
+from django.core.validators import RegexValidator, MinLengthValidator, EmailValidator, FileExtensionValidator
 
 
 @receiver(user_logged_in)
@@ -85,18 +86,54 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    name = models.CharField(max_length=60, blank=True)
-    surnames = models.CharField(max_length=80, blank=True)
-    email = models.EmailField(unique=True)
+    name = models.CharField(max_length=60, blank=False, null=False, validators=[
+            MinLengthValidator(2, "El nombre debe tener al menos 2 caracteres"),
+            RegexValidator(
+                regex=r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$',
+                message="El nombre solo puede contener letras y espacios"
+            )
+        ])
+    surnames = models.CharField(max_length=80, blank=False, null=False, validators=[
+            MinLengthValidator(2, "Los apellidos deben tener al menos 2 caracteres"),
+            RegexValidator(
+                regex=r'^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$',
+                message="Los apellidos solo pueden contener letras y espacios"
+            )
+        ])
+    email = models.EmailField(unique=True, blank=False, null=False, validators=[
+            EmailValidator(message="Ingrese un correo electrónico válido")
+        ],
+        error_messages={
+            'unique': 'Ya existe un usuario con este correo electrónico'
+        })
     token = models.CharField(max_length=255, blank=True, null=True)
-    phone = models.CharField(max_length=16, blank=True)
-    username = models.CharField(max_length=45, blank=True)
-    photo= models.ImageField(upload_to="user", default="default.png")
+    phone = models.CharField(max_length=16, blank=False, null=False, default="", validators=[
+            RegexValidator(
+                regex=r'^\+?1?\d{9,15}$',
+                message="El número de teléfono debe estar en formato: '+999999999'. Hasta 15 dígitos permitidos."
+            )
+        ])
+    username = models.CharField(max_length=45, blank=False, null=False, unique=True, validators=[
+            MinLengthValidator(3, "El nombre de usuario debe tener al menos 3 caracteres"),
+            RegexValidator(
+                regex=r'^[a-zA-Z][a-zA-Z0-9_-]*$',
+                message="El nombre de usuario debe comenzar con una letra y solo puede contener letras, números, guiones y guiones bajos"
+            )
+        ],
+        error_messages={
+            'unique': 'Este nombre de usuario ya está en uso'
+        })
+    photo= models.ImageField(upload_to="user", default="default.png", blank=False, null=False, validators=[
+        FileExtensionValidator(
+            allowed_extensions=['jpg', 'jpeg', 'png', 'gif'],
+            message="Solo se permiten archivos de imagen en formato JPG, JPEG, PNG o GIF"
+        ),
+    ])
     role = models.ForeignKey("Role", on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.BooleanField(default=True)
-    join_date = models.DateTimeField(default=now)
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    status = models.BooleanField(default=True, blank=False, null=False)
+    join_date = models.DateTimeField(default=now, blank=False, null=False)
+    is_active = models.BooleanField(default=True, blank=False, null=False)
+    is_staff = models.BooleanField(default=False, blank=False, null=False)
 
     objects = CustomUserManager()
 
@@ -113,7 +150,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 class Role(models.Model):
-    name = models.CharField(max_length=45, blank=True)
+    name = models.CharField(max_length=45, blank=False, null=False, unique=True, validators=[
+            MinLengthValidator(2, "El nombre del rol debe tener al menos 2 caracteres")
+        ])
     def __str__(self):
         return self.name
 
