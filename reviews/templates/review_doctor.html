@@ -45,7 +45,7 @@
         }
 
         .rating-stars i.active {
-            color: #f4b400;
+            color: #2E5077;
         }
 
         .guidelines {
@@ -79,30 +79,25 @@
 
 <body>
 
-
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-        <div class="container">
-            <a class="navbar-brand" href="#"><i class="fas fa-stethoscope"></i> MedOnline</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item"><a class="nav-link" href="#">¿Quiénes somos?</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Mi cuenta</a></li>
-                </ul>
-            </div>
+    <div class="row align-items-center text-center mt-1">
+        <div class="col-1 d-flex justify-content-center align-items-center" style="height: 100%;">
+          <a href="{% url 'landing' %}" class="btn text-secondary align-self-center">
+            <i class="bi bi-arrow-left fs-3"></i>
+          </a>
         </div>
-    </nav>
+        <div class="col-11 col-md-8 mx-auto">
+          <img src="{% static 'img/logo.png' %}" alt="Logo" class="img-fluid" style="max-width: 150px;" />
+        </div>
+      </div>
+      <hr class="my-1" />
 
     <div class="container mt-5 review-container">
         <div class="row">
             <div class="col-lg-6 col-md-6 mb-sm-3">
-                <!-- Review Form -->
                 <div class="review-card">
                     <h4>¿Cómo fue tu experiencia?</h4>
                     <div class="d-flex align-items-center">
-                        <img src="media/{{ doctor_photo }}" id="profileImage" class="rounded-circle me-3" width="60"
+                        <img src="/media/{{ doctor_photo }}" id="profileImage" class="rounded-circle me-3" width="60"
                             height="60" alt="Profile Picture">
                         <div>
                             <h5 id="userName">{{ doctor_name }}</h5>
@@ -127,7 +122,6 @@
             </div>
 
             <div class="col-lg-6 col-md-6 mb-sm-3">
-                <!-- Review Guidelines -->
                 <div class="guidelines">
                     <h5><i class="fa fa-info-circle"></i> Consejos para escribir una opinión</h5>
                     <p>Cuenta tu experiencia personalAgrega opiniones sobre visitas que hayas realizado para ti.
@@ -156,9 +150,24 @@
             const ratingValue = document.getElementById("ratingValue");
             const comment = document.getElementById("comment");
             const reviewForm = document.getElementById("reviewForm");
-            const reviewExists = ('{{ review_exists | lower }}');
             API_URL = "http://127.0.0.1:8000/reviews/review/{{review_token}}/";
 
+            console.log('{{ review_exists }}');
+
+            if ('{{ review_exists }}' == 'True') {   
+                const overlay = document.getElementById("overlay");
+                overlay.style.display = "block";
+                mostrarToastGlobal({
+                    type: 'danger',
+                    message: 'Ya has dejado una reseña para esta cita.',
+                });
+
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 3000); 
+
+                return;
+            }
             
             function getCookie(name) {
                 let cookieValue = null;
