@@ -1,8 +1,10 @@
 from rest_framework import serializers
 from .models import Appointment
-from doctors.models import Address, Doctor
+from doctors.models import Address
+from users.serializers import CustomUserSerializer as UserSerializer
 
 class AppointmentSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     status_display = serializers.CharField(source='get_status_display_name', read_only=True)
     doctor_name = serializers.CharField(source='doctor.user.name', read_only=True)
     doctor_surnames = serializers.CharField(source='doctor.user.surnames', read_only=True)
@@ -13,7 +15,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Appointment
         fields = '__all__'
-
+        
     def get_doctor_photo(self, obj):
         if obj.doctor and obj.doctor.user.photo:
             return obj.doctor.user.photo.url

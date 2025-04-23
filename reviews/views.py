@@ -30,12 +30,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'delete']
     
     def get_queryset(self):
-        # El usuario solo puede ver sus propias reseñas
-        user = self.request.user
+        queryset = Review.objects.all()
         doctor_id = self.request.query_params.get('doctor_id')
         if doctor_id:
-            return Review.objects.filter(user=user, doctor_id=doctor_id)
-        return Review.objects.filter(user=user)
+            queryset = queryset.filter(doctor_id=doctor_id)
+        return queryset
 
     def perform_create(self, serializer):
         # Asignar el usuario autenticado a la reseña

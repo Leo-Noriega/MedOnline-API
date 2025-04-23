@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% load static %}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Reserva de Cita</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}" />
+  <style>
+    #contactInfoLabel {
+      display: none;
+    }
+
+    .btn-outline-custom {
+      color: #2E5077;
+      border-color: #2E5077;
+      background-color: #fff;
+    }
+
+    .btn-outline-custom:hover,
+    .btn-check:checked+.btn-outline-custom {
+      color: #fff;
+      background-color: #2E5077;
+      border-color: #2E5077;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="row align-items-center text-center mt-1">
+    <div class="col-1 d-flex justify-content-center align-items-center" style="height: 100%;">
+      <a href="{% url 'user_home' %}" class="btn text-secondary align-self-center">
+        <i class="bi bi-arrow-left fs-3"></i>
+      </a>
+    </div>
+    <div class="col-11 col-md-8 mx-auto">
+      <img src="{% static 'img/logo.png' %}" alt="Logo" class="img-fluid" style="max-width: 150px;" />
+    </div>
+  </div>
+  <hr class="my-1" />
+
+  <div class="container my-5">
+    <div class="row">
+      <div class="col-12 col-lg-6 order-1 order-lg-2 mb-4 mb-lg-0">
+        <div class="card shadow-sm">
+          <div class="card-body d-flex align-items-center">
+            <div class="me-3">
+              <img src="/media/{{doctor.user.photo}}" alt="Doctor photo" class="rounded-circle" width="80"
+                height="80" />
+            </div>
+
+            <div class="d-flex flex-column justify-content-center">
+              <h5 class="card-title mb-1">Dr/a. {{doctor.user.name}} {{doctor.user.surnames}}</h5>
+              <p class="card-subtitle text-muted">{{specialty}}</p>
+            </div>
+          </div>
+
+          <div class="card-body pt-0">
+            <ul class="list-unstyled mb-3">
+              <li><strong>Fecha de la cita:</strong><br>{{ selected_date|date:"d \d\e F \d\e Y, h:i A" }}</li>
+              <li><strong>Precio de consulta: </strong>${{ doctor.consultation_fee }}</li>
+            </ul>
+
+            <div class="mb-3">
+              <label for="locationSelect" class="form-label"><strong>Elige una ubicación:</strong></label>
+              <select class="form-select" id="locationSelect">
+                {% for address in addresses %}
+                <option value="{{ address.id }}">
+                  {{ address.clinic_name }}, {{ address.street }}, {{ address.city }}, {{ address.state }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6 order-2 order-lg-1">
+        <h2 class="mb-4">Reserva de cita</h2>
+        <form>
+          <div class="mb-3">
+            <h5>¿Para quién es la cita?</h5>
+            <div class="btn-group d-flex" role="group">
+              <input type="radio" class="btn-check" name="forWhom" id="forMe" autocomplete="off" checked
+                onchange="toggleContactLabel()" />
+              <label class="btn btn-outline-custom w-50" for="forMe">Para mi</label>
+
+              <input type="radio" class="btn-check" name="forWhom" id="forSomeoneElse" autocomplete="off"
+                onchange="toggleContactLabel()" />
+              <label class="btn btn-outline-custom w-50" for="forSomeoneElse">Para otra persona</label>
+            </div>
+          </div>
+
+          <h4>Información personal del paciente</h4>
+          <div class="mb-3">
+            <label for="firstName" class="form-label">Nombre(s):</label>
+            <input type="text" class="form-control" id="firstName" required
+              value="{{ user.name |default:user.name|default:''}}" />
+          </div>
+
+          <div class="mb-3">
+            <label for="lastName" class="form-label">Apellido(s):</label>
+            <input type="text" class="form-control" id="lastName" required
+              value="{{ user.surnames |default:user.surnames|default:''}}" />
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label for="birthDate" class="form-label">Fecha de naciemiento:</label>
+              <input type="date" class="form-control" id="birthDate" required />
+            </div>
+            <div class="col-md-6">
+              <label for="gender" class="form-label">Género</label>
+              <select class="form-select" id="gender">
+                <option selected disabled>Selecciona un género</option>
+                <option value="1">Hombre</option>
+                <option value="2">Mujer</option>
+                <option value="3">Otro</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="contactInfoLabel" class="mb-2 fw-bold">
+            Información del contacto
+          </div>
+
+          <div class="mb-3">
+            <label for="phoneNumber" class="form-label">Número de telefono</label>
+            <div class="input-group">
+              <span class="input-group-text">+52</span>
+              <input type="tel" class="form-control" id="phoneNumber" required
+                value="{{ user.phone |default:user.phone|default:''}}" />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="email" class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" id="email" required value="{{ user.email}}" />
+          </div>
+
+          <div class="mb-3">
+            <label for="comment" class="form-label">Servicio a recibir:</label>
+            <textarea class="form-control" id="comment" rows="3"></textarea>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="consent" required />
+            <label class="form-check-label" for="consent">
+              Doy mi consentimiento para que MedOnline trate mis datos de salud para usar los servicios. <a
+                href="#">Leer más</a>
+            </label>
+          </div>
+          <button type="submit" class="btn-outline-custom w-100 rounded py-2 " id="submitBtn">
+            <span id="btnText">Crear Cita</span>
+            <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"
+              aria-hidden="true"></span>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const birthDateInput = document.getElementById('birthDate');
+      if (birthDateInput) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const maxDate = `${yyyy}-${mm}-${dd}`;
+        birthDateInput.max = maxDate;
+      }
+    });
+
+    function toggleContactLabel() {
+      const label = document.getElementById('contactInfoLabel');
+      const someoneElse = document.getElementById('forSomeoneElse').checked;
+
+      const name = document.getElementById('firstName');
+      const lastName = document.getElementById('lastName');
+      const phoneNumber = document.getElementById('phoneNumber');
+      const birthDate = document.getElementById('birthDate');
+      const gender = document.getElementById('gender');
+      const email = document.getElementById('email');
+
+      if (someoneElse) {
+        label.style.display = 'block';
+        name.value = '';
+        lastName.value = '';
+        phoneNumber.value = '';
+        birthDate.value = '';
+        gender.value = '';
+        email.value = "{{ user.email }}";
+        name.disabled = false;
+        lastName.disabled = false;
+        phoneNumber.disabled = false;
+        email.disabled = true;
+
+      } else {
+        label.style.display = 'none';
+        name.value = "{{ user.name |default:user.name|default:''}}";
+        lastName.value = "{{ user.surnames|default:user.surnames|default:''}}";
+        phoneNumber.value = "{{ user.phone|default:user.phone|default:''}}";
+        email.value = "{{ user.email}}";
+        name.disabled = true;
+        lastName.disabled = true;
+        phoneNumber.disabled = true;
+        email.disabled = true;
+      }
+    }
+
+    window.onload = toggleContactLabel;
+  </script>
+  <script>
+    document.querySelector('form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitBtn');
+      const btnText = document.getElementById('btnText');
+      const btnSpinner = document.getElementById('btnSpinner');
+      submitBtn.disabled = true;
+      btnText.classList.add('d-none');
+      btnSpinner.classList.remove('d-none');
+
+      const forSomeoneElse = document.getElementById('forSomeoneElse').checked;
+      const doctorId = "{{ doctor.id }}";
+      const addressId = document.getElementById('locationSelect').value;
+      const birthdate = document.getElementById('birthDate').value;
+      const gender = document.getElementById('gender').value;
+      const note = document.getElementById('comment').value;
+
+      const originalDateTime = "{{ selected_date|date:'Y-m-d\\TH:i:s' }}";
+      const appointmentDate = originalDateTime;
+
+      console.log('Appointment Date:', appointmentDate);
+
+      let payload = {
+        doctor: doctorId,
+        address: addressId,
+        birthdate: birthdate,
+        gender: gender,
+        appointment_date: appointmentDate
+      };
+
+      console.log('Payload:', payload);
+
+
+      if (note && note.trim() !== '') {
+        payload.note = note;
+      }
+
+      if (forSomeoneElse) {
+        payload.patient_name = document.getElementById('firstName').value;
+        payload.patient_surnames = document.getElementById('lastName').value;
+        payload.phone = document.getElementById('phoneNumber').value;
+      }
+
+      try {
+        const response = await fetch('http://localhost:8000/appointments/api/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+          alert('Cita creada exitosamente');
+          window.location.href = '/pacientes/inicio/';
+        } else {
+          const data = await response.json();
+          alert('Error al crear la cita: ' + (data.detail || JSON.stringify(data)));
+        }
+      } catch (error) {
+        alert('Error de red al crear la cita');
+      } finally {
+        submitBtn.disabled = false;
+        btnText.classList.remove('d-none');
+        btnSpinner.classList.add('d-none');
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

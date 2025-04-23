@@ -6,12 +6,17 @@ from .models import Appointment
 from .serializers import AppointmentSerializer
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
     renderer_classes = [JSONRenderer]
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
+    permission_classes = [IsAuthenticated]
+    
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def get_queryset(self):
         user_id = self.request.query_params.get('user_id', None)
@@ -36,4 +41,9 @@ class DoctorAppointmentsView(APIView):
             return Response({"message": "No se encontraron citas para este doctor."}, status=200)
         
         serializer = AppointmentSerializer(appointments, many=True)
-        return Response(serializer.data, status=200)
+        appointments_data = serializer.data
+        for appointment in appointments_data:
+            user = appointment.get('user')
+            if user:
+                appointment['user_full_name'] = f"{user.get('name', '')} {user.get('surnames', '')}"
+        return Response(appointments_data, status=200)
