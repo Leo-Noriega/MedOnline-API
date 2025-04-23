@@ -48,9 +48,9 @@ class UserViewSets(viewsets.ModelViewSet):
 def get_redirect_url(user):
     role = user.role.name if user.role else None
 
-    # if role == 'Admin':
-    #     return reverse('landing')
-    if role == 'Doctor':
+    if role == 'Admin':
+        return reverse('admin_home')
+    elif role == 'Doctor':
         return reverse('inicio')
     elif role == 'Patient':
          return reverse('user_home')
