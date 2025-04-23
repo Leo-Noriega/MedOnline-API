@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         throw new Error("Error al obtener las citas");
                     }
                     return response.json();
+
                 })
                 .then(data => {
                     const timeParts = doctorTime.split(':');
@@ -70,9 +71,13 @@ document.addEventListener("DOMContentLoaded", () => {
                                 backgroundColor = '#6c757d';
                         }
 
+                        const title = (appointment.patient_name && appointment.patient_surnames)
+                            ? `${appointment.patient_name} ${appointment.patient_surnames}`
+                            : (appointment.user_full_name || (appointment.user ? `${appointment.user.name} ${appointment.user.surnames}` : 'Paciente'));
+
                         return {
                             id: appointment.id,
-                            title: `${appointment.patient_name} ${appointment.patient_surnames}`,
+                            title: title,
                             start: startDate.toISOString(),
                             end: endDate.toISOString(),
                             allDay: false,
@@ -80,8 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             borderColor: backgroundColor,
                             extendedProps: {
                                 status: appointment.status,
-                                note: appointment.note,
-                                phone: appointment.phone
+                                note: appointment.note || 'Sin nota', 
+                                phone: appointment.user && appointment.user.phone ? appointment.user.phone : 'No disponible',
                             }
                         };
                     });

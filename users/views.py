@@ -15,6 +15,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 import secrets
+from django.conf import settings
+from datetime import datetime
 from django.views import View
 from django.core.mail import send_mail
 from django.contrib.auth.decorators import login_required
@@ -57,34 +59,6 @@ def get_redirect_url(user):
     else:
         return reverse('login')
     
-@login_required
-def user_home(request):
-    print("Usuario:", request.user)
-    print("Sesión:", request.user.is_authenticated)
-    print("info_sesion:", dict(request.session)) 
-    user_id = request.session.get('_auth_user_id')
-    nombre = request.user.name
-    apellidos = request.user.surnames
-
-    if request.user.role.name not in ['Patient']:
-        return redirect('login')
-    else:
-        specialities = get_all_specialities()
-        mexican_states = [
-            "Aguascalientes", "Baja California", "Baja California Sur", "Campeche", "Chiapas", "Chihuahua",
-            "Ciudad de México", "Coahuila", "Colima", "Durango", "Guanajuato", "Guerrero", "Hidalgo",
-            "Jalisco", "Estado de México", "Michoacán", "Morelos", "Nayarit", "Nuevo León", "Oaxaca",
-            "Puebla", "Querétaro", "Quintana Roo", "San Luis Potosí", "Sinaloa", "Sonora", "Tabasco",
-            "Tamaulipas", "Tlaxcala", "Veracruz", "Yucatán", "Zacatecas"
-        ]
-        return render(request, 'users/userHome.html',
-                      {'nombre': nombre,
-                       'apellidos':apellidos,
-                       'specialities' : specialities,
-                       'mexican_states': mexican_states},
-                      status=200)
-
-
 @method_decorator(csrf_exempt, name='dispatch')
 class CustomLoginViewAPI(FormView):
     template_name = "users/login.html"
@@ -116,15 +90,12 @@ class CustomLoginViewAPI(FormView):
 
         return JsonResponse({'error': 'Credenciales incorrectas'}, status=401)
 
-
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
-
 
 def cerrar_sesion(request):
     logout(request)
     return redirect('/')
-
 
 def register(request):
     """Vista para la página inicial de registro donde se elige el tipo de usuario"""
@@ -293,7 +264,6 @@ def send_reset_email(request):
             return JsonResponse({"message": "Correo de recuperación enviado."}, status=200)
         return JsonResponse({"error": "Usuario no encontrado"}, status=404)
 
-
 @csrf_exempt
 def reset_password(request):
     if request.method == "POST":
@@ -367,25 +337,23 @@ def reset_password(request):
             return JsonResponse({"message": "Contraseña restablecida exitosamente."})
         return JsonResponse({"error": "Token inválido"}, status=400)
 
-def get_all_specialities():
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT * FROM doctors_specialty")
-        rows = cursor.fetchall()
-    return rows
 
 def get_doctors_by_specialty_and_state(specialty_id, state):
-
     query = """
-    SELECT u.name, u.surnames, doctor.id, u.photo, sp.name AS specialty, da.clinic_name, da.street, da.city, da.state, da.postal_code
+    SELECT u.name, u.surnames, doctor.id, u.photo, sp.name AS specialty,
+           da.clinic_name, da.street, da.city, da.state, da.postal_code
     FROM doctors_doctor doctor
     JOIN user u ON doctor.user_id = u.id
     JOIN doctors_doctorspecialty ds ON doctor.id = ds.doctor_id
     JOIN doctors_specialty sp ON ds.specialty_id = sp.id
     JOIN doctors_address da ON doctor.id = da.doctor_id
     WHERE ds.specialty_id = %s AND da.state = %s
+      AND da.id = (
+          SELECT MIN(id) FROM doctors_address WHERE doctor_id = doctor.id AND state = %s
+      )
     """
     with connection.cursor() as cursor:
-        cursor.execute(query, [specialty_id, state])
+        cursor.execute(query, [specialty_id, state, state])
         columns = [col[0] for col in cursor.description]
         results = [dict(zip(columns, row)) for row in cursor.fetchall()]
     return results
@@ -398,7 +366,6 @@ def search_doctors(request):
 
     doctors = get_doctors_by_specialty_and_state(specialty_id, state)
     return JsonResponse({'doctors': doctors}, safe=False)
-
 
 class DoctorSearchAPIView(APIView):
     def get(self, request):
@@ -413,8 +380,7 @@ class DoctorSearchAPIView(APIView):
             return Response({'doctors': doctors}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
+        
 class UserUpdateView(APIView):
     def put(self, request, user_id):
         user = User.objects.get(id=user_id)

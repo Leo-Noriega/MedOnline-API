@@ -52,7 +52,7 @@
 </div>
 
 <script>
-    
+
     // Generar opciones de menú según el rol
     const userRole = localStorage.getItem('user_role');
     const menuOptions = document.getElementById('menu-options');
@@ -94,9 +94,23 @@
         } else if (userRole === 'Patient') {
             menuOptions.innerHTML = `
                 <li class="nav-item d-flex align-items-center link-hover px-3">
-                    <a class="nav-link pe-auto" href="#">
+                    <a class="nav-link pe-auto" href="{% url 'user_home' %}">
+                        <i class="bi bi-house me-2"></i>
+                        Inicio
+                    </a>
+                </li>
+
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'mis-citas-paciente'%}">
                         <i class="bi bi-calendar-check me-2"></i>
                         Mis citas
+                    </a>
+                </li>
+
+                <li class="nav-item d-flex align-items-center link-hover px-3">
+                    <a class="nav-link pe-auto" href="{% url 'mi-account-user' %}">
+                        <i class="bi bi-person-circle me-2"></i>
+                        Mi cuenta
                     </a>
                 </li>
             `;
@@ -136,5 +150,5 @@
             window.location.href = '/';
         });
     }
-    
+
 </script>
