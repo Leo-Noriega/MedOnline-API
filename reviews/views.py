@@ -37,7 +37,6 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return queryset
 
     def perform_create(self, serializer):
-        # Asignar el usuario autenticado a la reseña
         serializer.save(user=self.request.user)
       
 @method_decorator(ensure_csrf_cookie, name='dispatch')
@@ -57,7 +56,6 @@ class ReviewDoctorView(View):
                 "review_exists": review_exists,
             }
             
-            
         except Exception as e:
             print(f"Error: {e}")
             return JsonResponse(
@@ -67,9 +65,8 @@ class ReviewDoctorView(View):
         return render(request, "review_doctor.html", context)
         
     def post(self, request, token):
-        print(f"Origin: {request.headers.get('Origin')}")
         try:
-            appointment_id = decrypt_id(token)  # 🔹 Descifra el ID de la cita
+            appointment_id = decrypt_id(token) 
             appointment = get_object_or_404(Appointment, id=appointment_id)
         except Exception:
             messages.error(request, "El enlace no es válido.")
@@ -105,14 +102,13 @@ class ReviewDoctorView(View):
                 status=400,
             )
             
-
         review.rating = rating
         review.comment = comment
         review.review_date = now()
         review.save()
 
         return JsonResponse(
-            {"message": "Gracias por tu reseña"},
+            {"success":True, "message": "Gracias por tu reseña"},
             status=200,
         )
         
