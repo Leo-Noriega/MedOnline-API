@@ -102,7 +102,7 @@
                 <div class="review-card">
                     <h4>¿Cómo fue tu experiencia?</h4>
                     <div class="d-flex align-items-center">
-                        <img src="{{ doctor_photo }}" id="profileImage" class="rounded-circle me-3" width="60"
+                        <img src="media/{{ doctor_photo }}" id="profileImage" class="rounded-circle me-3" width="60"
                             height="60" alt="Profile Picture">
                         <div>
                             <h5 id="userName">{{ doctor_name }}</h5>
@@ -159,21 +159,7 @@
             const reviewExists = ('{{ review_exists | lower }}');
             API_URL = "http://127.0.0.1:8000/reviews/review/{{review_token}}/";
 
-            if (reviewExists) {
-                const overlay = document.getElementById("overlay");
-                overlay.style.display = "block";
-                mostrarToastGlobal({
-                    type: 'danger',
-                    message: 'Ya has dejado una reseña para esta cita.',
-                });
-
-                setTimeout(() => {
-                    window.location.href = "/";
-                }, 3000); 
-
-                return;
-            }
-
+            
             function getCookie(name) {
                 let cookieValue = null;
                 if (document.cookie && document.cookie !== '') {

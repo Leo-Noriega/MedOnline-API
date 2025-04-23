@@ -116,7 +116,11 @@ function renderAppointments(appointments) {
                             </div>
                             <div class="row justify-content-between">
                                 <div class="col-lg-8 col-12">
-                                    <p><strong>Cita agendada para:</strong> ${appointment.patient_name} ${appointment.patient_surnames}</p>
+                                ${
+                                    appointment.patient_name && appointment.patient_surnames
+                                        ? `<p><strong>Cita agendada para:</strong> ${appointment.patient_name} ${appointment.patient_surnames}</p>`
+                                        : ""
+                                }
                                 </div>
                                 <div class="col-lg-4 col-12">
                                     <p><strong>Servicio de la cita:</strong> ${appointment.note || "No especificado"}</p>
