@@ -22,6 +22,7 @@
         }
         .iti {
             width: 100%;
+            height: 50%;
         }
         .profile-preview {
             width: 135px;
@@ -42,33 +43,96 @@
         #profile{
             background-color: #edeff2;
         }
+        .alert {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .alert-closing {
+            opacity: 0;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
 {% include '_navBar.html' %}
 <div class="container flex-grow-1 my-5">
-    <div class="text-center mb-5">
+    <div class="text-center mb-4">
         <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px"/>
         <h1 class="text-title">Registro de Especialista</h1>
     </div>
 
-    {% if messages %}
-    <div class="row justify-content-center mb-3">
+    <!-- Sistema de mensajes mejorado -->
+    <div class="row justify-content-center mb-4">
         <div class="col-md-10">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}" role="alert">
-                {{ message }}
+            {% if messages %}
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} shadow-sm border-0 d-flex align-items-center" role="alert">
+                    <!-- Icono según el tipo de mensaje -->
+                    {% if message.tags == 'success' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle-fill me-2 flex-shrink-0" viewBox="0 0 16 16">
+                      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                    </svg>
+                    {% elif message.tags == 'warning' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill me-2 flex-shrink-0" viewBox="0 0 16 16">
+                      <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                    </svg>
+                    {% elif message.tags == 'danger' or message.tags == 'error' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-circle-fill me-2 flex-shrink-0" viewBox="0 0 16 16">
+                      <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+                    </svg>
+                    {% elif message.tags == 'info' %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill me-2 flex-shrink-0" viewBox="0 0 16 16">
+                      <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                    </svg>
+                    {% else %}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bell-fill me-2 flex-shrink-0" viewBox="0 0 16 16">
+                      <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z"/>
+                    </svg>
+                    {% endif %}
+                    
+                    <div>
+                        {{ message }}
+                    </div>
+                    
+                    <!-- Botón para cerrar la alerta -->
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Mensajes dinámicos para JS -->
+            <div id="messageContainer" style="display: none;">
+                <div id="message" class="alert shadow-sm border-0 d-flex align-items-center" role="alert">
+                    <div id="messageIcon" class="me-2 flex-shrink-0"></div>
+                    <div id="messageText"></div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             </div>
-            {% endfor %}
         </div>
     </div>
-    {% endif %}
+
+    <!-- Overlay de carga -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
 
     <div class="row justify-content-center">
         <div class="col-md-10">
             <div class="card">
                 <div class="card-body">
-                    <form method="post" action="{% url 'register_doctor' %}" enctype="multipart/form-data">
+                    <form id="doctorRegistrationForm" method="post" action="{% url 'register_doctor' %}" enctype="multipart/form-data">
                         {% csrf_token %}
                             <div class="row">
                                 <h4 class="mb-3 text-title">Información Personal</h4>
@@ -125,7 +189,7 @@
                                 </div>
                                 <div class="mb-3">
                                     <label for="photo" class="form-label text-second">Selecciona tu foto de perfil:</label>
-                                    <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                                    <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
                                 </div>
                                 
                                 <div class="mb-3">
@@ -197,60 +261,342 @@
 {% include '_footer.html' %}
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar el input de teléfono
-        const phoneInput = window.intlTelInput(document.querySelector("#phone"), {
-            initialCountry: "mx",
-            preferredCountries: ["mx", "us", "ca"],
-            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
-        });
+    function showMessage(text, type) {
+        const messageContainer = document.getElementById('messageContainer');
+        const messageElement = document.getElementById('message');
+        const messageText = document.getElementById('messageText');
+        const messageIcon = document.getElementById('messageIcon');
+        
+        messageElement.className = `alert alert-${type} shadow-sm border-0 d-flex align-items-center`;
+        
+        let iconSvg = '';
+        switch(type) {
+            case 'success':
+                iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/></svg>';
+                break;
+            case 'warning':
+                iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>';
+                break;
+            case 'danger':
+            case 'error':
+                iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-x-circle-fill" viewBox="0 0 16 16"><path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/></svg>';
+                break;
+            case 'info':
+                iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16"><path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>';
+                break;
+            default:
+                iconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-bell-fill" viewBox="0 0 16 16"><path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zm.995-14.901a1 1 0 1 0-1.99 0A5.002 5.002 0 0 0 3 6c0 1.098-.5 6-2 7h14c-1.5-1-2-5.902-2-7 0-2.42-1.72-4.44-4.005-4.901z"/></svg>';
+        }
+        
+        messageIcon.innerHTML = iconSvg;
+        messageText.textContent = text;
+        messageContainer.style.display = 'block';
+        
+        messageContainer.scrollIntoView({ behavior: 'smooth' });
+        
+        setTimeout(() => {
+            const alertInstance = bootstrap.Alert.getOrCreateInstance(messageElement);
+            alertInstance.close();
+        }, 5000); 
+    }
 
-        // Validación de contraseñas
-        document.querySelector('form').addEventListener('submit', function(event) {
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm_password').value;
-            
-            if (password !== confirmPassword) {
-                event.preventDefault();
-                alert('Las contraseñas no coinciden');
+    function resetDoctorForm() {
+        const form = document.getElementById('doctorRegistrationForm');
+        
+        const inputs = form.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.type === 'file') {
+            } else if (input.type === 'hidden' || input.name === 'csrfmiddlewaretoken') {
+            } else if (input.type === 'tel') {
+            } else if (input.id === 'consultation_time') {
+                input.value = '00:30:00'; 
+            } else {
+                input.value = '';
             }
             
-            // Formatear número de teléfono con código de país
-            const phoneNumber = phoneInput.getNumber();
-            document.getElementById('phone').value = phoneNumber;
+            input.classList.remove('is-valid', 'is-invalid');
+            
+            const feedbackElement = input.nextElementSibling;
+            if (feedbackElement && feedbackElement.classList.contains('invalid-feedback')) {
+                feedbackElement.textContent = '';
+            }
         });
-    });
-    
-    // Actualizar la vista previa del perfil cuando se cambia el nombre o apellidos
-    document.getElementById('name').addEventListener('input', updatePreviewName);
-    document.getElementById('surnames').addEventListener('input', updatePreviewName);
-    
+        
+        document.getElementById('preview_name').textContent = "Tu nombre";
+        document.getElementById('preview_specialty').textContent = "Tu Especialidad";
+        document.getElementById('preview_image').src = "{% static 'img/profile_placeholder.png' %}";
+        
+        if (typeof phoneInput !== 'undefined' && phoneInput) {
+            phoneInput.setCountry("mx");
+        }
+    }
+
+    function setupInputFields() {
+        const inputs = document.querySelectorAll('#doctorRegistrationForm input, #doctorRegistrationForm select');
+        
+        inputs.forEach(input => {
+            if (input.type !== 'hidden' && input.name !== 'csrfmiddlewaretoken') {
+                if (!input.nextElementSibling || !input.nextElementSibling.classList.contains('invalid-feedback')) {
+                    const feedbackDiv = document.createElement('div');
+                    feedbackDiv.className = 'invalid-feedback';
+                    input.after(feedbackDiv);
+                }
+                
+                if (input.id === 'phone') {
+                    input.addEventListener('blur', () => validacionInput(input, true));
+                } else {
+                    input.addEventListener('input', () => validacionInput(input, false));
+                    input.addEventListener('blur', () => validacionInput(input, true));
+                    input.addEventListener('change', () => validacionInput(input, true));
+                }
+            }
+        });
+    }
+
+    function validacionInput(input, showError = true) {
+        if (input.disabled || (input.type === 'file' && !input.required && input.files.length === 0)) {
+            return true;
+        }
+
+        let pattern;
+        let isValid = true;
+        let errorMessage = '';
+
+        switch (input.id) {
+            case 'name':
+            case 'surnames':
+                pattern = /^[a-zA-ZÀ-ÿ\s]{3,100}$/;
+                if (!pattern.test(input.value.trim())) {
+                    isValid = false;
+                    errorMessage = 'Debe contener entre 3 y 100 caracteres y solo incluir letras.';
+                }
+                break;
+            case 'phone':
+                if (window.intlTelInputGlobals && input.parentElement.querySelector('.iti')) {
+                    const phoneInput = window.intlTelInputGlobals.getInstance(input);
+                    if (!phoneInput.isValidNumber()) {
+                        isValid = false;
+                        errorMessage = 'Número de teléfono inválido.';
+                    }
+                } else {
+                    pattern = /^(?:\+52\s?)?(\d{2,3})?\s?\d{10}$/;
+                    if (!pattern.test(input.value.trim())) {
+                        isValid = false;
+                        errorMessage = 'Ingrese un número de teléfono válido.';
+                    }
+                }
+                break;
+            case 'consultation_fee':
+                pattern = /^[1-9]\d*(\.\d{1,2})?$/;
+                if (!pattern.test(input.value.trim())) {
+                    isValid = false;
+                    errorMessage = 'Debe ser un número positivo con hasta dos decimales.';
+                }
+                break;
+            case 'consultation_time':
+                pattern = /^([0-1][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$/;
+                if (!pattern.test(input.value.trim())) {
+                    isValid = false;
+                    errorMessage = 'Formato incorrecto. Use HH:MM:SS (ejemplo: 00:30:00).';
+                }
+                break;
+            case 'email':
+                pattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+                if (!pattern.test(input.value.trim()) || input.value.length < 11 || input.value.length > 250) {
+                    isValid = false;
+                    errorMessage = 'Debe ser un correo electrónico válido y contener entre 11 y 250 caracteres.';
+                }
+                break;
+            case 'username':
+                pattern = /^[a-zA-Z0-9_]{3,20}$/;
+                if (!pattern.test(input.value.trim())) {
+                    isValid = false;
+                    errorMessage = 'El nombre de usuario debe tener entre 3 y 20 caracteres y solo puede contener letras, números y guiones bajos.';
+                }
+                break;
+            case 'password':
+                pattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+                if (!pattern.test(input.value.trim())) {
+                    isValid = false;
+                    errorMessage = 'Debe tener al menos 8 caracteres, incluyendo una letra mayúscula, un número y un carácter especial.';
+                }
+                break;
+            case 'confirm_password':
+                const password = document.getElementById('password');
+                if (input.value !== password.value) {
+                    isValid = false;
+                    errorMessage = 'Las contraseñas no coinciden.';
+                }
+                break;
+            case 'license_number':
+                pattern = /^[0-9]{7,8}$|^AESSA-[0-9]{7}$|^AE-[0-9]{7}$/;
+                if (!pattern.test(input.value.trim())) {
+                    isValid = false;
+                    errorMessage = 'Debe ser un número de cédula válido (7-8 dígitos o con prefijos AESSA/AE).';
+                }
+                break;
+            case 'specialty':
+                if (input.value === "") {
+                    isValid = false;
+                    errorMessage = 'Debe seleccionar una especialidad.';
+                }
+                break;
+            case 'photo':
+                if (input.required && input.files.length === 0) {
+                    isValid = false;
+                    errorMessage = 'Debe seleccionar una imagen.';
+                } else if (input.files.length > 0) {
+                    const file = input.files[0];
+                    const fileType = file.type;
+                    if (!fileType.startsWith('image/')) {
+                        isValid = false;
+                        errorMessage = 'El archivo debe ser una imagen.';
+                    } else if (file.size > 5 * 1024 * 1024) { // 5MB
+                        isValid = false;
+                        errorMessage = 'El tamaño de la imagen no debe exceder 5MB.';
+                    }
+                }
+                break;
+            default:
+                if (input.required && input.value.trim() === '') {
+                    isValid = false;
+                    errorMessage = 'Este campo es obligatorio.';
+                }
+                break;
+        }
+
+        let feedbackElement = input.nextElementSibling;
+        if (!feedbackElement || !feedbackElement.classList.contains('invalid-feedback')) {
+            feedbackElement = document.createElement('div');
+            feedbackElement.className = 'invalid-feedback';
+            input.parentNode.insertBefore(feedbackElement, input.nextSibling);
+        }
+
+        if (isValid) {
+            input.classList.remove('is-invalid');
+            
+            if (showError) {
+                input.classList.add('is-valid');
+            }
+            
+            feedbackElement.textContent = '';
+        } else {
+            input.classList.remove('is-valid');
+            
+            if (showError) {
+                input.classList.add('is-invalid');
+                feedbackElement.textContent = errorMessage;
+            }
+        }
+
+        return isValid;
+    }
+
+    function validarFormulario() {
+        const inputs = document.querySelectorAll('#doctorRegistrationForm input, #doctorRegistrationForm select');
+        let formValido = true;
+
+        inputs.forEach(input => {
+            if (input.type !== 'hidden' && input.name !== 'csrfmiddlewaretoken') {
+                if (!validacionInput(input, true)) {
+                    formValido = false;
+                }
+            }
+        });
+
+        return formValido;
+    }
+
+    function toggleLoading(show) {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.style.display = show ? 'flex' : 'none';
+        }
+    }
+
     function updatePreviewName() {
         const name = document.getElementById('name').value;
         const surnames = document.getElementById('surnames').value;
         const fullName = (name + ' ' + surnames).trim();
         document.getElementById('preview_name').textContent = fullName || "Tu nombre";
     }
-    
-    // Actualizar la vista previa de la especialidad cuando se cambia
-    document.getElementById('specialty').addEventListener('change', function() {
-        const select = document.getElementById('specialty');
-        const specialtyText = select.options[select.selectedIndex].text;
-        document.getElementById('preview_specialty').textContent = specialtyText || "Tu Especialidad";
-    });
-    
-    // Vista previa de la imagen de perfil
-    document.getElementById('profile_photo').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.getElementById('preview_image').src = event.target.result;
-            }
-            reader.readAsDataURL(file);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const phoneInputElement = document.querySelector("#phone");
+        const phoneInput = window.intlTelInput(phoneInputElement, {
+            initialCountry: "mx",
+            preferredCountries: ["mx", "us", "ca"],
+            utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js"
+        });
+
+        setupInputFields();
+
+        const djangoMessages = document.querySelectorAll('.alert:not(#message)');
+        djangoMessages.forEach(message => {
+            setTimeout(() => {
+                const alertInstance = bootstrap.Alert.getOrCreateInstance(message);
+                alertInstance.close();
+            }, 5000);
+        });
+
+        const form = document.getElementById('doctorRegistrationForm');
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                if (!validarFormulario()) {
+                    showMessage('Por favor, corrija los errores en el formulario.', 'danger');
+                    const primerError = document.querySelector('.is-invalid');
+                    if (primerError) {
+                        primerError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                } else {
+                    if (phoneInput && phoneInputElement) {
+                        phoneInputElement.value = phoneInput.getNumber();
+                    }
+                    
+                    toggleLoading(true);
+                    this.submit();
+                }
+            });
         }
+
+        const existingInputs = document.querySelectorAll('.form-control');
+        existingInputs.forEach(input => {
+            if (input.value.trim() !== '') {
+                validacionInput(input);
+            }
+        });
+        
+        const errorMessages = document.querySelectorAll('.alert-danger, .alert-error');
+        if (errorMessages.length > 0) {
+            setTimeout(() => {
+                resetDoctorForm();
+            }, 100);
+        }
+                
+        document.getElementById('name').addEventListener('input', updatePreviewName);
+        document.getElementById('surnames').addEventListener('input', updatePreviewName);
+        
+        document.getElementById('specialty').addEventListener('change', function() {
+            const select = document.getElementById('specialty');
+            const specialtyText = select.options[select.selectedIndex].text;
+            document.getElementById('preview_specialty').textContent = specialtyText || "Tu Especialidad";
+        });
+        
+        document.getElementById('photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('preview_image').src = event.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        window.toggleLoading = toggleLoading;
     });
-    
 </script>
 </body>
 </html>

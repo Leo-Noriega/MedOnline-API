@@ -17,15 +17,18 @@ def generate_encrypted_id(appointment_id):
 
 
 class Review(models.Model):
-    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name="appointment_reviews")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_review")
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reviews')
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, related_name="appointment_reviews", blank=False, null=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="patient_review", blank=False, null=False)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reviews', blank=False, null=False)
     rating = models.PositiveSmallIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)], blank=False, null=False)
-    comment = models.TextField(blank=True, null=True)
+    comment = models.TextField(max_length=200, blank=True, null=True)
     review_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
     
     def __str__(self):
         return f"Review from {self.user.name} {self.user.surnames} - {self.user.username}"
+
+    class Meta:
+        db_table = 'reviews_review'
     
 
     def send_review_email(self):
