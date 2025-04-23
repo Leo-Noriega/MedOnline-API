@@ -237,7 +237,17 @@ async function showDoctors(specialtyId, state) {
         });
     } catch (error) {
         console.error("Error al realizar la consulta:", error);
-        alert("Ocurrió un error al realizar la consulta.");
+        mostrarToastGlobal({
+            type: 'danger', // Tipo de mensaje: info, success, warning, danger
+            message: 'Ocurrió un error al realizar la consulta. Por favor, intenta de nuevo.',
+            buttons: [
+                {
+                    label: 'Cerrar',
+                    className: 'btn btn-secondary btn-sm',
+                    onClick: () => console.log('Toast cerrado')
+                }
+            ]
+        });
     }
 }
 function calculateDateForWeekday(targetWeekday, currentWeekday) {
@@ -350,7 +360,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const state = stateSelector.value;
 
         if (specialtyId === "Especialidad" || state === "Estado") {
-            alert("Por favor selecciona una especialidad y un estado.");
+            mostrarToastGlobal({
+                type: 'danger',
+                message: 'Por favor selecciona una especialidad y un estado.',
+                buttons: [
+                    {
+                        label: 'Entendido',
+                        className: 'btn btn-secondary btn-sm',
+                        onClick: () => console.log('Toast cerrado')
+                    }
+                ]
+            });
             return;
         }
 

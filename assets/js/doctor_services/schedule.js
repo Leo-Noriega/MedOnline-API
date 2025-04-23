@@ -250,22 +250,33 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const renderEditableSchedule = (data = []) => {
+        console.log("Renderizando horario editable con datos:", data);
+    
+        // Resto del código...
+        
         const rows = weekdays.map((day, index) => {
             const dayData = data.find(schedule => schedule.weekday === index + 1);
+            console.log(`Día ${day}, datos:`, dayData);
+            
+            // Día de la semana en nuestro formato (1-7)
+            const weekday = index + 1;
+            
             return `
-        <tr data-availability-id="${dayData ? dayData.id : ''}">
-            <td><p class="m-0 text-second fw-medium">${day}</p></td>
-            <td>
-                <input type="checkbox" name="workday" ${dayData ? "checked" : ""}>
-            </td>
-            <td>
-                <input type="time" class="form-control" name="start_time" value="${dayData ? dayData.start_time : ''}">
-            </td>
-            <td>
-                <input type="time" class="form-control" name="end_time" value="${dayData ? dayData.end_time : ''}">
-            </td>
-        </tr>
-    `;
+            <tr data-availability-id="${dayData && dayData.availability_id ? dayData.availability_id : ''}" 
+                data-weekday="${weekday}" 
+                data-had-schedule="${dayData ? 'true' : 'false'}">
+                <td><p class="m-0 text-second fw-medium">${day}</p></td>
+                <td>
+                    <input type="checkbox" name="workday" ${dayData ? "checked" : ""}>
+                </td>
+                <td>
+                    <input type="time" class="form-control start-time" name="start_time" value="${dayData ? dayData.start_time : ''}">
+                </td>
+                <td>
+                    <input type="time" class="form-control end-time" name="end_time" value="${dayData ? dayData.end_time : ''}">
+                </td>
+            </tr>
+            `;
         }).join('');
 
         scheduleElement.innerHTML = `
@@ -287,6 +298,24 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
 `;
 
+        // Agregar event listeners para validar tiempo
+        const endTimeInputs = scheduleElement.querySelectorAll('.end-time');
+        endTimeInputs.forEach(endTimeInput => {
+            endTimeInput.addEventListener('change', (e) => {
+                const row = e.target.closest('tr');
+                const startTime = row.querySelector('.start-time').value;
+                const endTime = e.target.value;
+                
+                if (startTime && endTime && startTime >= endTime) {
+                    mostrarToastGlobal({
+                        type: 'error',
+                        message: "La hora de fin debe ser mayor a la hora de inicio"
+                    });
+                    e.target.value = '';
+                }
+            });
+        });
+
         document.getElementById("saveButton").addEventListener("click", saveSchedule);
         document.getElementById("cancelButton").addEventListener("click", () => {
             isEditing = false;
@@ -298,26 +327,84 @@ document.addEventListener("DOMContentLoaded", () => {
         const rows = scheduleElement.querySelectorAll("tbody tr");
         const updatedSchedule = [];
         const deletedSchedule = [];
+        let hasTimeError = false;
 
+        console.log("Iniciando proceso de guardado del horario");
+
+        // Primera pasada: solo validar tiempos
         Array.from(rows).forEach((row, index) => {
             const works = row.querySelector("input[name='workday']").checked;
             const startTime = row.querySelector("input[name='start_time']").value;
             const endTime = row.querySelector("input[name='end_time']").value;
+            
+            if (works && startTime && endTime && startTime >= endTime) {
+                hasTimeError = true;
+                mostrarToastGlobal({
+                    type: 'error',
+                    message: `Error en ${weekdays[index]}: La hora de fin debe ser mayor a la hora de inicio`
+                });
+            }
+        });
 
+        if (hasTimeError) {
+            console.log("Proceso detenido por errores de tiempo");
+            return;
+        }
+
+        // Segunda pasada: construir los arreglos
+        Array.from(rows).forEach((row, index) => {
+            const works = row.querySelector("input[name='workday']").checked;
+            const startTime = row.querySelector("input[name='start_time']").value;
+            const endTime = row.querySelector("input[name='end_time']").value;
             const availabilityId = row.getAttribute("data-availability-id");
+            
+            console.log(`Día ${weekdays[index]}:`);
+            console.log(`- Trabaja: ${works ? "Sí" : "No"}`);
+            console.log(`- ID: "${availabilityId}"`);
+            console.log(`- Tipo de ID: ${typeof availabilityId}`);
+            console.log(`- ¿ID vacío?: ${!availabilityId || availabilityId === ""}`);
 
-            if (works) {
-                updatedSchedule.push({
+            // Si el médico trabaja ese día
+            if (works && startTime && endTime) {
+                const scheduleItem = {
                     doctor_id: doctorId,
                     weekday: index + 1,
                     start_time: startTime,
-                    end_time: endTime,
-                });
-            } else if (availabilityId) {
+                    end_time: endTime
+                };
+                
+                if (availabilityId && availabilityId !== '') {
+                    scheduleItem.id = availabilityId;
+                    console.log(`- Actualizando ID: ${availabilityId}`);
+                } else {
+                    console.log(`- Nuevo registro`);
+                }
+                
+                updatedSchedule.push(scheduleItem);
+            } 
+            // PUNTO CLAVE: Si no trabaja pero tiene un ID (existía antes)
+            else if (!works && availabilityId && availabilityId !== '') {
+                console.log(`- ELIMINANDO ID: ${availabilityId}`);
                 deletedSchedule.push(availabilityId);
             }
         });
 
+        console.log("Datos finales:");
+        console.log("- updatedSchedule:", updatedSchedule);
+        console.log("- deletedSchedule:", deletedSchedule);
+        
+        // Si no hay nada que actualizar ni eliminar, mostrar mensaje y salir
+        if (updatedSchedule.length === 0 && deletedSchedule.length === 0) {
+            mostrarToastGlobal({
+                type: 'info',
+                message: "No hay cambios para guardar en el horario."
+            });
+            isEditing = false;
+            fetchSchedule();
+            return;
+        }
+    
+        // Resto del código para confirmar y procesar...
         mostrarToastGlobal({
             type: 'text',
             message: '¿Estás seguro de que deseas actualizar tu horario?',
@@ -326,6 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     label: 'Sí, confirmar',
                     className: 'button-principal',
                     onClick: () => {
+                        // Primero procesar las actualizaciones
                         fetch(`/schedule/save_availability/`, {
                             method: 'POST',
                             headers: {
@@ -335,41 +423,56 @@ document.addEventListener("DOMContentLoaded", () => {
                             },
                             body: JSON.stringify(updatedSchedule)
                         })
-                            .then(response => {
-                                if (!response.ok) throw new Error("Error al guardar el horario");
-                                return response.json();
-                            })
-                            .then(() => {
-                                const deletePromises = deletedSchedule.map(id =>
-                                    fetch(`/schedule/availability/${id}/`, {
-                                        method: 'DELETE',
-                                        headers: {
-                                            'X-CSRFToken': getCSRFToken(),
-                                            "Authorization": `Bearer ${localStorage.getItem("access_token")}`
-                                        }
-                                    })
-                                        .then(response => {
-                                            if (!response.ok) throw new Error(`Error al eliminar el horario con ID ${id}`);
+                        .then(response => {
+                            if (!response.ok) throw new Error("Error al guardar el horario");
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log("Respuesta del servidor al guardar:", data);
+                            
+                            // Ahora procesar las eliminaciones si hay alguna
+                            if (deletedSchedule.length > 0) {
+                                console.log(`Procesando ${deletedSchedule.length} eliminaciones...`);
+                                
+                                // Procesar las eliminaciones una por una en secuencia para mejor control
+                                return deletedSchedule.reduce((promise, id) => {
+                                    return promise.then(() => {
+                                        console.log(`Intentando eliminar ID: ${id}`);
+                                        return fetch(`/schedule/availability/${id}/`, {
+                                            method: 'DELETE',
+                                            headers: {
+                                                'X-CSRFToken': getCSRFToken(),
+                                                "Authorization": `Bearer ${localStorage.getItem("access_token")}`
+                                            }
                                         })
-                                );
-
-                                return Promise.all(deletePromises);
-                            })
-                            .then(() => {
-                                mostrarToastGlobal({
-                                    type: 'success',
-                                    message: "Horario actualizado exitosamente."
-                                });
-                                isEditing = false;
-                                fetchSchedule();
-                            })
-                            .catch(error => {
-                                console.error("Error al guardar o eliminar el horario:", error);
-                                mostrarToastGlobal({
-                                    type: 'error',
-                                    message: "Hubo un error al actualizar el horario."
-                                });
+                                        .then(response => {
+                                            console.log(`Respuesta para eliminar ID ${id}:`, response.status);
+                                            if (!response.ok) {
+                                                console.error(`Error al eliminar horario con ID ${id}`);
+                                                throw new Error(`Error al eliminar el horario con ID ${id}`);
+                                            }
+                                            console.log(`Eliminado correctamente horario con ID ${id}`);
+                                        });
+                                    });
+                                }, Promise.resolve());
+                            }
+                            return Promise.resolve();
+                        })
+                        .then(() => {
+                            mostrarToastGlobal({
+                                type: 'success',
+                                message: "Horario actualizado exitosamente."
                             });
+                            isEditing = false;
+                            fetchSchedule();
+                        })
+                        .catch(error => {
+                            console.error("Error al guardar o eliminar el horario:", error);
+                            mostrarToastGlobal({
+                                type: 'error',
+                                message: `Error al actualizar el horario: ${error.message}`
+                            });
+                        });
                     }
                 },
                 {
@@ -391,7 +494,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!response.ok) throw new Error("Error al obtener el horario");
                 return response.json();
             })
-            .then(data => renderSchedule(data.schedule))
+            .then(data => {
+                console.log("Datos recibidos del servidor:", data.schedule);
+                renderSchedule(data.schedule);
+            })
             .catch(() => renderSchedule());
     };
     fetchSchedule();
