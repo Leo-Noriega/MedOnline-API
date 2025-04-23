@@ -124,43 +124,48 @@ def get_doctor_schedule(request, doctor_id):
         for availability in availabilities:
             daily_schedules = DailySchedule.objects.filter(availability=availability)
             for daily_schedule in daily_schedules:
-                if availability.weekday >= today_weekday:
-                    slots = generate_time_slots(
-                        str(daily_schedule.start_time),
-                        str(daily_schedule.end_time),
-                        consultation_duration,
-                        availability.weekday
-                    )
+                
+                # Procesamos todos los días de la semana
+                slots = generate_time_slots(
+                    str(daily_schedule.start_time),
+                    str(daily_schedule.end_time),
+                    consultation_duration,
+                    availability.weekday
+                )
+                
+                # Calcular la fecha correcta para el día de la semana
+                days_ahead = (availability.weekday - today_weekday) % 7
+                if days_ahead == 0 and availability.weekday < today_weekday:
+                    days_ahead = 7  # Para días anteriores en la próxima semana
+                slot_date = current_date + timedelta(days=days_ahead)
+                date_str = slot_date.strftime('%Y-%m-%d')
+                
+                all_slots_info = []
+                for slot in slots:
+                    slot_info = {
+                        'time': slot,
+                        'status': None  
+                    }
                     
-                    days_ahead = (availability.weekday - today_weekday) % 7
-                    slot_date = current_date + timedelta(days=days_ahead)
-                    date_str = slot_date.strftime('%Y-%m-%d')
+                    if date_str in booked_slots and slot in booked_slots[date_str]:
+                        status = booked_slots[date_str][slot]
+                        if status == Status.CANCELLED:
+                            pass
+                        else:
+                            slot_info['status'] = status
                     
-                    all_slots_info = []
-                    for slot in slots:
-                        slot_info = {
-                            'time': slot,
-                            'status': None  
-                        }
-                        
-                        if date_str in booked_slots and slot in booked_slots[date_str]:
-                            status = booked_slots[date_str][slot]
-                            if status == Status.CANCELLED:
-                                pass
-                            else:
-                                slot_info['status'] = status
-                        
-                        all_slots_info.append(slot_info)
-                    
-                    schedule_data.append({
-                        'weekday': availability.weekday,
-                        'weekday_label': availability.get_weekday_display(),
-                        'start_time': str(daily_schedule.start_time),
-                        'end_time': str(daily_schedule.end_time),
-                        'slots': all_slots_info,
-                        'is_today': availability.weekday == today_weekday,
-                        'date': date_str
-                    })
+                    all_slots_info.append(slot_info)
+                
+                schedule_data.append({
+                    'weekday': availability.weekday,
+                    'weekday_label': availability.get_weekday_display(),
+                    'start_time': str(daily_schedule.start_time),
+                    'end_time': str(daily_schedule.end_time),
+                    'slots': all_slots_info,
+                    'is_today': availability.weekday == today_weekday,
+                    'date': date_str,
+                    'availability_id': availability.id
+                })
 
         return JsonResponse({
             'doctor': {
