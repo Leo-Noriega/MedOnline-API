@@ -1,74 +1,70 @@
+{% extends 'layout/layout.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MedOnline - Registro</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-            crossorigin="anonymous"></script>
-    <style>
-        .role-card {
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 0px !important;
-            height: 100%;
-            border-radius: 10px;
-            background-color: #EEF4FD !important;
-        }
-        .role-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        .role-image {
-            max-height: 150px;
-            margin-bottom: 15px;
-        }
-        .card-text {
-            color: #7F807F;
-        }
-    </style>
-</head>
-<body class="d-flex flex-column min-vh-100">
-{% include '_navBar.html' %}
-<div class="container flex-grow-1 my-5">
-    <div class="text-center my-5">
-        <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px"/>
-        <h1 class="text-title">Registro de Usuario</h1>
-    </div>
 
-    <div class="row justify-content-center mb-5">
+{% block title %}
+  Registro
+{% endblock %}
+
+{% block styles %}
+  <style>
+    .role-card {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 0px !important;
+      height: 100%;
+      border-radius: 10px;
+      background-color: #eef4fd !important;
+    }
+    .role-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .role-image {
+      max-height: 150px;
+      margin-bottom: 15px;
+    }
+    .card-text {
+      color: #7f807f;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+  <body class="d-flex flex-column min-vh-100">
+    <div class="container flex-grow-1 my-5">
+      <div class="text-center my-5">
+        <img src="{% static 'img/logo.png' %}" alt="MedOnline Logo" class="mb-3" style="height: 82px" />
+        <h1 class="text-title">Registro de Usuario</h1>
+      </div>
+
+      <div class="row justify-content-center mb-5">
         <div class="col-md-4 mb-4">
-            <a href="{% url 'register_patient' %}" class="text-decoration-none">
-                <div class="card role-card p-4 text-center h-100">
-                    <img src="{% static 'img/patient.png' %}" alt="Paciente" class="role-image mx-auto" 
-                         onerror="this.src='https://via.placeholder.com/150?text=Paciente'">
-                    <h3 class="text-principal">Soy paciente</h3>
-                    <p class="card-text">Comparte información básica con tu especialista antes de la visita</p>
-                </div>
-            </a>
+          <a href="{% url 'register_patient' %}" class="text-decoration-none">
+            <div class="card role-card p-4 text-center h-100">
+              <img src="{% static 'img/patient.png' %}" alt="Paciente" class="role-image mx-auto" onerror="this.src='https://via.placeholder.com/150?text=Paciente'" />
+              <h3 class="text-principal">Soy paciente</h3>
+              <p class="card-text">Comparte información básica con tu especialista antes de la visita</p>
+            </div>
+          </a>
         </div>
         <div class="col-md-4 mb-4">
-            <a href="{% url 'register_doctor' %}" class="text-decoration-none">
-                <div class="card role-card p-4 text-center h-100">
-                    <img src="{% static 'img/doctor.png' %}" alt="Especialista" class="role-image mx-auto" 
-                         onerror="this.src='https://via.placeholder.com/150?text=Especialista'">
-                    <h3 class="text-principal">Soy especialista</h3>
-                    <p class="card-text">Consigue que tus pacientes te conozcan, confíen en ti y reserven contigo</p>
-                </div>
-            </a>
+          <a href="{% url 'register_doctor' %}" class="text-decoration-none">
+            <div class="card role-card p-4 text-center h-100">
+              <img src="{% static 'img/doctor.png' %}" alt="Especialista" class="role-image mx-auto" onerror="this.src='https://via.placeholder.com/150?text=Especialista'" />
+              <h3 class="text-principal">Soy especialista</h3>
+              <p class="card-text">Consigue que tus pacientes te conozcan, confíen en ti y reserven contigo</p>
+            </div>
+          </a>
         </div>
-    </div>
-    
-    <div class="row">
+      </div>
+
+      <div class="row">
         <div class="col-12 text-center mt-3">
-            <p>¿Ya tienes una cuenta?<a href="{% url 'login' %}" class="text-decoration-none ms-2 text-second">Iniciar Sesión</a></p>
+          <p>
+            ¿Ya tienes una cuenta?<a href="{% url 'login' %}" class="text-decoration-none ms-2 text-second">Iniciar Sesión</a>
+          </p>
         </div>
+      </div>
     </div>
-</div>
-{% include '_footer.html' %}
-</body>
-</html>
+  </body>
+{% endblock %}
