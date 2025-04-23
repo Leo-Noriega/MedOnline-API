@@ -32,7 +32,11 @@ FERNET_KEY = base64.urlsafe_b64encode(SECRET_KEY.encode()[:32])
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = conf["debug"]
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "https://medonline-api.onrender.com",  # Reemplaza con tu dominio de Render
+]
 
 
 # Application definition
@@ -82,6 +86,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
+    "https://medonline-api.onrender.com"
 
 ]
 
@@ -90,6 +95,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000/",
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'https://medonline-api.onrender.com'
 ]
     
 
@@ -169,6 +175,7 @@ USE_TZ = True
 
 STATIC_URL = "/assets/"
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "assets"),)
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 LOGIN_URL = "/users/login/"
