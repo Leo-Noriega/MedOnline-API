@@ -1,21 +1,16 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    {% load static %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quienes somos</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/app.css' %}">
-</head>
+{% extends 'layout/layout.html' %}
 
-<body class="justify-content-center">
-    <div class="h-100 justify-content-center align-items-center ">
-        <h1 class="text-title">500</h1>
-        <img src="404.png" />
-        <button>Explorar desde la pagina principal</button>
-        <p class="text-center">Estamos tratando de solucionar el problema. Regresa mas tarde.</p>
+{% block title %}
+  500
+{% endblock %}
+
+{% block content %}
+  <body class="justify-content-center">
+    <div class="h-100 justify-content-center align-items-center">
+      <h1 class="text-title">500</h1>
+      <img src="404.png" alt="Error 500" />
+      <button>Explorar desde la pagina principal</button>
+      <p class="text-center">Estamos tratando de solucionar el problema. Regresa mas tarde.</p>
     </div>
-</body>
-</html>
+  </body>
+{% endblock %}
