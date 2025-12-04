@@ -121,14 +121,53 @@ def update_admin(request, user_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
+# Para get_patient
 @require_http_methods(["GET"])
 def get_patient(request, user_id):
     try:
         print(f"Buscando paciente con ID: {user_id}")
         patient = CustomUser.objects.get(id=user_id, role__name='Patient')
-        appointments = Appointment.objects.filter(user_id=user_id).select_related(
-            'doctor__user', 'address').order_by('-appointment_date')
-        print(f"Citas encontradas: {appointments.count()}")
+        
+        # Obtenemos citas pero minimizamos las relaciones
+        appointment_ids = Appointment.objects.filter(user_id=user_id).values_list('id', flat=True).order_by('-appointment_date')
+        print(f"Citas encontradas: {len(appointment_ids)}")
+        
+        # Procesamos cada cita de forma más segura
+        appointment_data = []
+        for app_id in appointment_ids:
+            try:
+                # En lugar de usar select_related, usamos values() para obtener solo los campos necesarios
+                app = Appointment.objects.filter(id=app_id).values(
+                    'id', 'appointment_date', 'note', 'patient_name', 'patient_surnames', 'status',
+                    'doctor__user__name', 'doctor__user__surnames', 'address__clinic_name'
+                ).first()
+                
+                if app:
+                    # Obtenemos el status de forma manual
+                    status_value = app['status']
+                    status_display = "Desconocido"
+                    
+                    # Consulta directa para obtener el display value
+                    try:
+                        temp_app = Appointment.objects.get(id=app_id)
+                        status_display = temp_app.get_status_display()
+                    except:
+                        pass
+                    
+                    appointment_data.append({
+                        'id': app['id'],
+                        'date': app['appointment_date'].strftime("%Y-%m-%d %H:%M") if app['appointment_date'] else None,
+                        'doctor': f"{app['doctor__user__name']} {app['doctor__user__surnames']}" if app['doctor__user__name'] else "Doctor no disponible",
+                        'clinic': app['address__clinic_name'] if app['address__clinic_name'] else None,
+                        'status': status_display,
+                        'note': app['note'],
+                        'patient_name': app['patient_name'],
+                        'patient_surnames': app['patient_surnames']
+                    })
+            except Exception as e:
+                print(f"Error procesando la cita {app_id}: {str(e)}")
+                continue
+        
         data = {
             'patient': {
                 'id': patient.id,
@@ -138,25 +177,17 @@ def get_patient(request, user_id):
                 'phone': patient.phone,
                 'username': patient.username,
                 'photo': patient.photo.url if patient.photo else None,
-                'status': patient.status,
+                'status': getattr(patient, 'status', None),
                 'role': patient.role.name,
                 'join_date': patient.join_date.strftime("%Y-%m-%d")
             },
-            'appointments': [{
-                'id': appointment.id,
-                'date': appointment.appointment_date.strftime("%Y-%m-%d %H:%M"),
-                'doctor': f"{appointment.doctor.user.name} {appointment.doctor.user.surnames}",
-                'clinic': appointment.address.clinic_name,
-                'status': appointment.get_status_display(),
-                'note': appointment.note,
-                'patient_name': appointment.patient_name,
-                'patient_surnames': appointment.patient_surnames
-            } for appointment in appointments]
+            'appointments': appointment_data
         }
         return JsonResponse(data)
     except CustomUser.DoesNotExist:
         return JsonResponse({'error': 'Paciente no encontrado'}, status=404)
     except Exception as e:
+        print(f"Error general: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
 @require_http_methods(["PUT"])
@@ -225,14 +256,47 @@ def update_patient(request, user_id):
 @require_http_methods(["GET"])
 def get_doctor(request, user_id):
     try:
-        
         doctor_user = CustomUser.objects.select_related('role').get(id=user_id, role__name='Doctor')
         doctor = Doctor.objects.filter(user=doctor_user).first()
         specialties = DoctorSpecialty.objects.filter(doctor=doctor).select_related('specialty')
         addresses = Address.objects.filter(doctor=doctor)
         availabilities = Availability.objects.filter(doctor=doctor)
-        appointments = Appointment.objects.filter(doctor=doctor).order_by('-appointment_date')
-
+        
+        # Cambio aquí: obtenemos solo los IDs de las citas
+        appointment_ids = Appointment.objects.filter(doctor=doctor).values_list('id', flat=True).order_by('-appointment_date')
+        
+        # Procesamos cada cita individualmente para evitar la recursión
+        appointment_data = []
+        for app_id in appointment_ids:
+            try:
+                # Usamos values() para obtener solo los campos necesarios
+                app = Appointment.objects.filter(id=app_id).values(
+                    'id', 'appointment_date', 'patient_name', 'patient_surnames', 'status',
+                    'address__clinic_name'
+                ).first()
+                
+                if app:
+                    # Obtenemos el status de forma manual
+                    status_value = app['status']
+                    status_display = "Desconocido"
+                    
+                    # Consulta directa para obtener el display value
+                    try:
+                        temp_app = Appointment.objects.get(id=app_id)
+                        status_display = temp_app.get_status_display()
+                    except:
+                        pass
+                    
+                    appointment_data.append({
+                        'id': app['id'],
+                        'date': app['appointment_date'].strftime("%Y-%m-%d %H:%M") if app['appointment_date'] else None,
+                        'patient_name': f"{app['patient_name']} {app['patient_surnames']}",
+                        'clinic': app['address__clinic_name'] if app['address__clinic_name'] else None,
+                        'status': status_display
+                    })
+            except Exception as e:
+                print(f"Error procesando la cita {app_id}: {str(e)}")
+                continue
         
         response_data = {
             'status': 'success',
@@ -274,13 +338,8 @@ def get_doctor(request, user_id):
                         'end_time': schedule.end_time.strftime("%H:%M")
                     } for schedule in DailySchedule.objects.filter(availability=availability)]
                 } for availability in availabilities],
-                'appointments': [{
-                    'id': appointment.id,
-                    'date': appointment.appointment_date.strftime("%Y-%m-%d %H:%M"),
-                    'patient_name': f"{appointment.patient_name} {appointment.patient_surnames}",
-                    'clinic': appointment.address.clinic_name,
-                    'status': appointment.get_status_display()
-                } for appointment in appointments]
+                # Usamos appointment_data en lugar del comprehension list anterior
+                'appointments': appointment_data
             }
         }
         
